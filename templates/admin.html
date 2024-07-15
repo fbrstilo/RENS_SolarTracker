@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<script type="module" src="{{ url_for('static', filename='scripts/scripts_admin.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+<div class="main-content">
+    <div class="box">
+        <form action="" method="POST" id="message-delta-time">
+            <h2>Message delta time</h2>
+            <div>
+                <input type="text" id="delta-time" name="delta-time" placeholder="current: {{ request_timeout }}s">
+                <button name="submit-delta-time" id="submit-delta-time" class="submit-button" disabled>Submit</button>
+            </div>
+        </form>
+    </div>
+    <div class="box">
+        <form action="" method="POST" id="mqtt">
+            <h2>MQTT setup</h2>
+            <div>
+                <input type="text" id="mqtt-app-id" name="mqtt-app-id" placeholder="Application ID">
+                <input type="text" id="mqtt-broker-address" name="mqtt-broker-address" placeholder="Broker address">
+                <button name="submit-mqtt" id="submit-mqtt" class="submit-button" disabled>Submit</button>
+            </div>
+        </form>
+    </div>
+    <div class="box">
+        <form action="" method="POST" id="chirpstack-api">
+            <h2>Chirpstack API setup</h2>
+            <div>
+                <input type="text" id="chirpstack-api-key" name="chirpstack-api-key" placeholder="API key">
+                <input type="text" id="chirpstack-server-address" name="chirpstack-server-address" placeholder="Address">
+                <button name="submit-chirpstack-api" id="submit-chirpstack-api" class="submit-button" disabled>Submit</button>
+            </div>
+        </form>
+    </div>
+    <div class="box">
+        <form action="" method="POST" id="defaults">
+            <h2>Defaults</h2>
+            <div>
+                <input type="text" id="siren-on-time" name="siren-on-time" placeholder="Siren on time (0-255s)">
+                <br><br>
+                <input type="text" id="insolation" name="insolation" placeholder="Insolation (%)">
+                <br><br>
+                <input type="text" id="latitude" name="latitude" placeholder="Latitude">
+                <br><br>
+                <input type="text" id="longitude" name="longitude" placeholder="Longitude">
+                <br><br>
+                <input type="text" id="time-offset" name="time-offset" placeholder="Time offset (-65535 to 65535)">
+                <br><br>
+                <input type="text" id="limit-east" name="limit-east" placeholder="East limit">
+                <br><br>
+                <input type="text" id="limit-west" name="limit-west" placeholder="West limit">
+                <br><br>
+                <input type="text" id="height-first" name="height-first" placeholder="First panel height">
+                <br><br>
+                <input type="text" id="height-second" name="height-second" placeholder="Second panel height">
+                <br><br>
+                <input type="text" id="axis-distance" name="axis-distance" placeholder="Panel axis distance">
+                <br><br>
+                <input type="text" id="panel-length" name="panel-length" placeholder="Panel length">
+                <br><br>
+                <input type="text" id="home-position" name="home-position" placeholder="Home position (degrees)">
+                <br><br>
+                <input type="text" id="motor-rpd" name="motor-rpd" placeholder="Revolutions per degree">
+                <button name="submit-defaults" id="submit-defaults" class="submit-button">Submit</button>
+            </div>
+        </form>
+    </div>
+    <div class="box">
+        <form action="" method="POST" id="change-password">
+            <h2>Change Administrator password</h2>
+            <div>
+                <input type="password" id="password" name="password" placeholder="New password">
+                <input type="password" id="password-confirm" name="password-confirm" placeholder="Repeat new password">
+                <input type="hidden" id="password-hash" name="password-hash">
+                <button name="submit-newpass" id="submit-newpass" class="submit-button" disabled>Change</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

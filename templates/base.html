@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RENS Solar Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/Logo_Rens-baterija.png') }}">
+    {% block head %}{% endblock %}
+    <script type="module" src="{{ url_for('static', filename='scripts/scripts_base.js') }}"></script>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="{{ url_for('static', filename='images/Logo-Final_bez_slogana.png') }}" alt="RENS logo">
+        </div>
+        {% if logged_in==False %}
+            <a href="/login"><div id="login-button" class="button">Log in</div></a>
+        {% else %}
+            <div id="logout-button" class="button">Log out</div>
+        {% endif %}
+    </header>
+    <div class="container">
+        <div class="sidebar">
+            <div class="content">
+                {% for err in logs %}
+                <a href="/logs?id={{log}}">
+                    <div id="{{log}}" class="button">
+                        {{log}}
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            <a href="/">
+                <div id="home" class="button">
+                    Home
+                </div>
+            </a>
+            <button class="collapsible" id="collapsible-alarms"
+                {% if alarms_and_errors|count > 0 %}
+                style="background-color: #ff4545;">
+                <b>{{alarms_and_errors|count}} NEW ALARMS/ERRORS</b>
+                </button>
+                <div class="content">
+                <a href="/alarms-errors">
+                    <div id="new-alarms-errors" class="button" style="background-color: #ff4545;">
+                        New alarms and errors
+                    </div>
+                </a>
+                {% else %}
+                >Alarms and errors </button>
+                <div class="content">
+                {% endif %}
+                <a href="/alarms-errors?id=Alarm_Error.log">
+                    <div id="alarms_and_errors_archive" class="button">
+                        Alarms and errors archive
+                    </div>
+                </a>
+                </div>
+            <a href="/admin">
+                <div id="admin" class="button">
+                    Admin
+                </div>
+            </a>
+            <button class="collapsible" id="collapsible-devices">Devices</button>
+            <div class="content">
+                {% for device in devices %}
+                <a href="/device?id=device{{device[1]}}">
+                    <div id="device{{device[1]}}" class="button">
+                        Device {{device[1]}}
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            <button class="collapsible" id="collapsible-logs">Logs</button>
+            <div class="content">
+                {% for log in logs %}
+                <a href="/logs?id={{log}}">
+                    <div id="{{log}}" class="button">
+                        {{log}}
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% block body %}{% endblock %}
+    </div>
+</body>
+</html>

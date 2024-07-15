@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<script type="module" src="{{ url_for('static', filename='scripts/scripts_login.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+<div class="main-content">
+    <div class="box">
+        <form action="" method="POST" id="login">
+            <h2>Administrator login</h2>
+            <div>
+                <input type="password" id="password" name="password" placeholder="Password">
+                <input type="hidden" id="pass-hash" name="pass-hash">
+                <button name="login-button" id="submit-login-button" class="submit-button" disabled>Login</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

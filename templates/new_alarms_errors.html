@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<script type="module" src="{{ url_for('static', filename='scripts/scripts_alarms_errors.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+<div class="main-content" id="main-content">
+    <form action="" method="POST" id="dismiss-all-form">
+        <div class="box">
+            <h2>{{alarms_and_errors.count()}} NEW ALARMS/ERRORS:</h2>
+            <button name="dismiss-all" id="dismiss-all" class="submit-button" style="background-color: #ff4545;">DISMISS ALL</button>
+        </div>
+    </form>
+    {% for err in alarms_and_errors %}
+    <form action="" method="POST" id="error{{err.error_id}}" class="error">
+        <div class="box">
+            <p class="error-text"><span style="color: #009440">{{err.timestamp}}</span> {{err.content}}</p>
+            <button name="dismiss" id="dismiss{{err.error_id}}" value="{{err.error_id}}" class="submit-button dismiss">Dismiss</button>
+        </div>
+    </form>
+    {% endfor %}
+</div>
+{% endblock %}

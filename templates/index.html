@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block head %}
+{% endblock %}
+
+{% block body %}
+<div class="main-content">
+    <h1> RENS Solar Tracker use guide</h1>
+    <div class="box">
+        <h2>ADMIN</h2>
+        <p>In order to access this page You need to input the Admin password.<br>
+        This page is used for initial communication setup and device default values</p>
+    </div>
+    <div class="box">
+        <h2>LOGIN</h2>
+        <p>This page is used to elevate user privileges to ADMIN.
+		<br>Change the password in the Admin control panel.
+		<br>To reset the password follow the instructions in the RESET_ADMIN_PASS file (located on the web server).</p>
+    </div>
+    <div class="box">
+        <h2>DEVICE CONTROL</h2>
+        <h3>To access this page click on the Devices dropdown in the sidebar menu and choose the device you wish to control</h3>
+
+        <h3>Controls available to all users:</h3>
+
+	    <h3>Angle/Panel Tilt control:</h3>
+		<p><b>MAKE SURE TO SWITCH BACK TO AUTO WHEN MANUAL CONTROL IS NO LONGER NEEDED</b>
+		<br><b>Automatic control:</b> set the toggle to the 'Auto' position and press the 'Send data' button
+		<br><b>Manual control:</b> set the toggle to the 'Manual' position, input the wanted angle in the text input area, and press the 'Send data' button.
+		<br>The device will never move past the east/west limits</p>
+
+	    <h3>Request log:</h3>
+		<p>Create a new .log file, viewable in the 'Logs' section
+		<br>To request the device's last log, switch the toggle to the 'Last' position and press the 'Request log' button
+		<br>To request all available logs, switch the toggle to the 'All' position and press the 'Request log' button. This action takes 8x longer than all others</p>
+
+	    <h3>Reset:</h3>
+		<p>Reboot the device. After reboot the device will sound off the alarm and move to its home position, before resuming automatic angle control</p>
+
+        <h3>Controls available to the Admin:</h3>
+	    <h3>To revert values to their default, submit the data with empty input fields.</h3>
+
+	    <h3>Siren and insolation:</h3>
+		<p>On system start, the siren will play before the solar panel moves. This is in order for workers who might be in the vicinity to move to a safe distance.
+		<br>Siren on time determines the duration of this warning.
+		<br>The insolation percentage represents how much the controlled panel should cover the next one
+			<br>&emsp;0% - next panel is fully hidden from the Sun
+			<br>&emsp;100% - next panel is fully exposed to the Sun
+        </p>
+
+	    <h3>Global position:</h3>
+		<p>Set the latitude and longitude of the system. This data is used together with the current time in order to calculate the appropriate elevation angle.</p>
+
+	    <h3>Time offset:</h3>
+		<p>Set the device time offset in seconds.
+		<br>This data is used together with the current UTC time to make adjustments for the actual time zone.</p>
+
+	    <h3>Angle limits:</h3>
+		<p>Set the maximum east/west panel angle. This is used to protect the system from physical damage. The system will never exceed these angles, even if manually ordered</p>
+	    <h3>Height difference:</h3>
+		<p>Set the heights of this (first) and next (second) panel, as viewed from the Sun. This data is used to calculate the insolation of the next panel</p>
+
+	    <h3>Panel length and axis distance:</h3>
+		<p>Set the panel length and distance between panel axes. This data is used to calculate the insolation percentage of the next panel</p>
+
+	    <h3>Home position and motor revolutions per degree</h3>
+        <p>After reboot the device will go to the Home position, and then from there move to the next appropriate position, as calculated by the automatic elevation control system.
+        <br>Motor RPD is used to calculate how to get to the next appropriate position</p>
+
+    </div>
+    <div class="box">
+        <h3>LOGS</h3>
+        <p>All system logs will appear in this menu. Log viewing is available to all users.</p>
+    </div>
+</div>
+{% endblock %}

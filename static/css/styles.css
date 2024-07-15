@@ -1,0 +1,255 @@
+a {
+    text-decoration: none;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+p, pre{
+    font-size: large;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background-color: #333; /* Dark background color */
+    color: white; /* Text color */
+}
+
+header .logo img {
+    height: 4em; /* Adjust as necessary */
+}
+header .button {
+    background-color: #444;
+    color: white;
+    cursor: pointer;
+    margin-top: 10px;
+    margin-left: auto;
+    padding: 10px;
+    width: 10em;
+    border: none;
+    text-align: center;
+    outline: none;
+    font-size: 15px;
+    border-radius: 5px;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #333;
+    color: white;
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+.sidebar .collapsible, .sidebar .button{
+    background-color: #444;
+    color: white;
+    cursor: pointer;
+    margin-top: 10px;
+    padding: 10px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 15px;
+    border-radius: 5px;
+}
+
+.sidebar .button {
+    width: calc(100% - 20px);
+}
+
+.sidebar .active, .sidebar .button .active, .sidebar .collapsible:hover, .sidebar .button:hover, header .button:hover {
+    background-color: #555;
+}
+
+.sidebar .content {
+    padding: 10px;
+    padding-top: 0;
+    display: none;
+    overflow: hidden;
+    background-color: #444;
+    border-radius: 5px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.main-content {
+    flex-grow: 1;
+    background-color: #fafcff;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    position: relative;
+
+    background-image: url('../images/architecture.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: inherit;
+    background-position: center;
+}
+
+.main-content .box {
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.main-content .box .main-content-dropdown{
+    background-color: rgba(255, 255, 255, 0);
+    color: black;
+    cursor: pointer;
+    margin-top: 10px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 15px;
+    border-radius: 5px;
+}
+
+.main-content .box .main-content-dropdown:hover{
+    background-color: rgb(221, 221, 221, 0.5);
+}
+
+.main-content .box .content{
+    display: none;
+    margin-top: 10px;
+}
+
+/* Style for the toggle container */
+.toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between elements */
+}
+
+/* Style for the toggle switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Slider for the toggle switch */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #555;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* Style for the text box */
+input[type=text], input[type=password] {
+    height: 2em;
+    width: 30em;
+    margin-right: 1em;
+    padding: 5px;
+    border: 1px solid #555;
+    border-radius: 4px;
+}
+
+/* Style for the send button */
+.submit-button {
+    margin-left: auto; /* Push to the right */
+    padding: 10px 20px;
+    background-color: #009440;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.submit-button:hover {
+    background-color: #007231;
+}
+.submit-button:disabled{
+    background-color: #00723198;
+}
+
+/* Style for the timeout pop-up*/
+.overlay {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+}
+
+.popup {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 25em;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    z-index: 1001;
+    text-align: center;
+}
+
+.popup h2 {
+    margin-top: 0;
+}
+
+/* Highlighting for alarms and errors */
+.highlight-yellow {
+    color: #ff9900;
+}
+.highlight-red {
+    color: red;
+}

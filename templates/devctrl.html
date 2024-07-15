@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<script type="module" src="{{ url_for('static', filename='scripts/scripts_devctrl.js') }}"></script>
+{% block head_extra %}{% endblock %}
+{% endblock %}
+
+{% block body %}
+<div class="main-content" id="main-content">
+    <div id="overlay" class="overlay"></div>
+    <div id="popup" class="popup">
+        <h2>Message time-out</h2>
+        <p>Control will be re-enabled in <span id="timer"></span> seconds.</p>
+        <input type="hidden" id="wait-time" value="{{wait}}">
+    </div>
+    <div class="box">
+        <form action="" method="POST" id="elevation-control">
+            <h2>Angle/Panel Tilt control:</h2>
+            <div class="toggle-container">
+                <label class="switch">
+                    <input type="checkbox" id="manual-toggle-switch" name="manual-toggle-switch" value="1">
+                    <span class="slider"></span>
+                </label>
+                <span id="manual-toggle-label">Auto</span>
+                <input type="text" id="elevation-text-box" name="elevation-text-box" placeholder="Angle/Panel Tilt" style="display: none;">
+                <button name="submit-elevation" id="submit-elevation" class="submit-button">Send data</button>
+            </div>
+        </form>
+    </div>
+    <div class="box">
+        <form action="" method="POST" id="log-request">
+            <h2>Request log</h2>
+            <div class="toggle-container">
+                <label class="switch">
+                    <input type="checkbox" id="log-toggle-switch" name="log-toggle-switch" value="1">
+                    <span class="slider"></span>
+                </label>
+                <span id="log-toggle-label">Last</span>
+                <button name="submit-log-request" id="submit-log-request" class="submit-button">Request log</button>
+            </div>
+        </form>
+    </div>
+    {% block parameters %}{% endblock %}
+    <div class="box">
+        <form action="" method="POST" id="reset">
+            <h2>REBOOT DEVICE</h2>
+            <button name="submit-reset" id="reset-button" class="submit-button" style="background-color: #ff4545;">Reboot</button>
+        </form>
+    </div>
+</div>
+
+
+{% endblock %}

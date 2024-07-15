@@ -1,0 +1,4 @@
+To change the admin password create a SHA256 hash of the password (UTF-8 input, HEX output) and paste it to the adminpass file
+
+Default password: 23456789
+Default password hash: f14f286ca435d1fa3b9d8041e8f06aa0af7ab28ea8edcd7e11fd485a100b632b
