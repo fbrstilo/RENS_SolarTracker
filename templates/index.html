@@ -26,24 +26,23 @@
 	    <h3>Angle/Panel Tilt control:</h3>
 		<p><b>MAKE SURE TO SWITCH BACK TO AUTO WHEN MANUAL CONTROL IS NO LONGER NEEDED</b>
 		<br><b>Automatic control:</b> set the toggle to the 'Auto' position and press the 'Send data' button
-		<br><b>Manual control:</b> set the toggle to the 'Manual' position, input the wanted angle in the text input area, and press the 'Send data' button.
+		<br><b>Manual control:</b> set the toggle to the 'Manual' position, write the wanted angle in the text input area, and press the 'Send data' button.
 		<br>The device will never move past the east/west limits</p>
 
 	    <h3>Request log:</h3>
 		<p>Create a new .log file, viewable in the 'Logs' section
 		<br>To request the device's last log, switch the toggle to the 'Last' position and press the 'Request log' button
-		<br>To request all available logs, switch the toggle to the 'All' position and press the 'Request log' button. This action takes 8x longer than all others</p>
+		<br>To request all available logs, switch the toggle to the 'All' position and press the 'Request log' button. This action takes 8x longer than requesting a single log</p>
 
 	    <h3>Reset:</h3>
-		<p>Reboot the device. After reboot the device will sound off the alarm and move to its home position, before resuming automatic angle control</p>
+		<p>Reboot the device. After reboot the device will sound off the alarm and move to its home position, before resuming automatic control</p>
 
         <h3>Controls available to the Admin:</h3>
 	    <h3>To revert values to their default, submit the data with empty input fields.</h3>
 
 	    <h3>Siren and insolation:</h3>
-		<p>On system start, the siren will play before the solar panel moves. This is in order for workers who might be in the vicinity to move to a safe distance.
-		<br>Siren on time determines the duration of this warning.
-		<br>The insolation percentage represents how much the controlled panel should cover the next one
+		<br>Siren on time - system boot warning duration in seconds.
+		<br>Insolation - max area of next solar panel that the controlled solar panel is allowed to 'hide' from the Sun. Expressed as a percentage:
 			<br>&emsp;0% - next panel is fully hidden from the Sun
 			<br>&emsp;100% - next panel is fully exposed to the Sun
         </p>
@@ -56,7 +55,7 @@
 		<br>This data is used together with the current UTC time to make adjustments for the actual time zone.</p>
 
 	    <h3>Angle limits:</h3>
-		<p>Set the maximum east/west panel angle. This is used to protect the system from physical damage. The system will never exceed these angles, even if manually ordered</p>
+		<p>Set the maximum east/west panel angle. This is used to protect the system from physical damage. The system will never exceed these angles, even if manually ordered to</p>
 	    <h3>Height difference:</h3>
 		<p>Set the heights of this (first) and next (second) panel, as viewed from the Sun. This data is used to calculate the insolation of the next panel</p>
 
@@ -64,8 +63,8 @@
 		<p>Set the panel length and distance between panel axes. This data is used to calculate the insolation percentage of the next panel</p>
 
 	    <h3>Home position and motor revolutions per degree</h3>
-        <p>After reboot the device will go to the Home position, and then from there move to the next appropriate position, as calculated by the automatic elevation control system.
-        <br>Motor RPD is used to calculate how to get to the next appropriate position</p>
+        <p>Home position - the first position to which the device goes to after booting up
+        <br>Motor RPD - ratio between motor revolutions and solar panel angle change</p>
 
     </div>
     <div class="box">

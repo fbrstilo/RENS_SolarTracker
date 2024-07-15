@@ -162,7 +162,7 @@ def on_connect(client, userdata, flags, rc):
         print(f"Failed to connect, return code {rc}\n")
 
 def write_to_log(log_message, log_path, alarm = False):
-    print(log_message)
+    print(log_message.rstrip())
     if(alarm == True):
         alarms_and_errors.add_error(log_message) # Add alarms and errors to a collection for individual review
     with open(log_path, 'a') as log_file:
@@ -339,9 +339,9 @@ device_eui_map = load_or_create_device_mappings()
 #log_request_thread.start()
 
 # Testing of the alarm and error page
-write_to_log(f"{datetime.now()}, Error: decoding JSON:\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
-write_to_log(f"{datetime.now()}, L6470 Status Reg (Hex): status_reg:#06x, (Decimal): status_reg, Error: error_text\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
-write_to_log(f"{datetime.now()}, Device device_number (eui:dev_eui) has just been rebooted.\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
+#write_to_log(f"{datetime.now()}, Error: decoding JSON:\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
+#write_to_log(f"{datetime.now()}, L6470 Status Reg (Hex): status_reg:#06x, (Decimal): status_reg, Error: error_text\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
+#write_to_log(f"{datetime.now()}, Device device_number (eui:dev_eui) has just been rebooted.\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
 
 # Start MQTT client loop
 client.loop_start()
