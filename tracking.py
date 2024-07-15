@@ -34,7 +34,7 @@ class ErrorCollection:
     def add_error(self, error_string):
         try:
             timestamp_str, content = error_string.split(',', 1)
-            timestamp = datetime.strptime(timestamp_str.strip(), '%Y-%m-%d %H:%M:%S.%f')
+            timestamp = datetime.strptime(timestamp_str.strip(), '%Y-%m-%d %H:%M:%S')
         except ValueError as ve:
             raise ValueError(f"Error string '{error_string}' is not in the correct format. Expected '[date/time], [error content]'.") from ve
         new_error = Error(self.next_id, timestamp, content.strip())
@@ -191,7 +191,7 @@ def on_message(client, userdata, msg):
         
         if not base64_data: # device rebooted
             log_filename = "Alarm_Error.log"
-            log_message = f"{datetime.now()}, Device {device_number} (eui:{dev_eui}) has just been rebooted.\n"
+            log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Device {device_number} (eui:{dev_eui}) has just been rebooted.\n"
             write_to_log(log_message=log_message, log_path=ALARMS_PATH + log_filename, alarm=True)
             return
 
@@ -199,7 +199,7 @@ def on_message(client, userdata, msg):
         # Ensure there's at least one byte for the port number
         if len(decoded_data) < 1:
             log_filename = "Alarm_Error.log"
-            log_message = f"{datetime.now()}, Device {device_number} (eui:{dev_eui}) error: recieved data is too short: {decoded_data}\n"
+            log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Device {device_number} (eui:{dev_eui}) error: recieved data is too short: {decoded_data}\n"
             write_to_log(log_message=log_message, log_path=ALARMS_PATH + log_filename, alarm=True)
             return
         
@@ -220,20 +220,20 @@ def on_message(client, userdata, msg):
             elif hex_data == '01':
                 state_text = f"Device {device_number} is in MANUAL mode now"
             log_filename = LOGS_PATH + "EventLogger.log"
-            log_message = f"{datetime.now()}, State: {state_text}\n"
+            log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, State: {state_text}\n"
         elif port_number == 4: # Recieved logs
             # Check the length of the remaining data
             if len(remaining_data) == 4:
                 log_filename = LOGS_PATH + f"Device_{device_number}_{date_str}_{hour_str}.log"
                 # Decode the last four bytes as a float
                 ieee_float = struct.unpack('>f', remaining_data)[0]
-                log_message = f"{datetime.now()}, Panel Tilt: {ieee_float:.2f}\n"
+                log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\t\t\t\t\t{ieee_float:.2f}\n"
             else:
                 log_filename = LOGS_PATH + f"Device_{device_number}_{date_str}.log"
                 with open(log_filename, 'a') as log_file:
-                    # Check if the file is empty
-                    if log_file.tell() == 0:
-                        log_file.write("Timestamp\t\t\t\t\t\tFloat Value\n")
+                    # Add column descriptors - removed for easier parsing to .csv
+                    #if log_file.tell() == 0:
+                    #   log_file.write("Timestamp\t\t\t\t\t\tPanel tilt\n")
                     # Write the logs
                     for i in range(0, len(remaining_data_log), 8):
                         timestamp_bytes = remaining_data_log[i:i+4]
@@ -254,7 +254,7 @@ def on_message(client, userdata, msg):
                 ieee_bytes = remaining_data[:4]
                 try:
                     ieee_float = struct.unpack('>f', ieee_bytes)[0]
-                    log_message = f"{datetime.now()}, Panel Tilt: {ieee_float:.2f}\n"
+                    log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\t\t\t\t\t{ieee_float:.2f}\n"
                 except struct.error as e:
                     print("Error decoding float:", e)
         elif port_number == 63:
@@ -270,7 +270,7 @@ def on_message(client, userdata, msg):
                     error_text = "Motor error"
                 else:
                     error_text = "Unknown error"    
-                    log_message = f"{datetime.now()}, L6470 Status Reg (Hex): {status_reg:#06x}, (Decimal): {status_reg}, Error: {error_text}\n"
+                    log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, L6470 Status Reg (Hex): {status_reg:#06x}, (Decimal): {status_reg}, Error: {error_text}\n"
         elif port_number == 128:
             log_filename = ALARMS_PATH + "Alarm_Error.log"
             alarm = True
@@ -283,11 +283,11 @@ def on_message(client, userdata, msg):
                 error_text = "App parameter error"
             else:
                 error_text = "Unknown error"
-            log_message = f"{datetime.now()}, Error: {error_text}\n"
+            log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Error: {error_text}\n"
         else:
             log_filename = ALARMS_PATH + "Alarm_Error.log"
             alarm = True
-            log_message = f"{datetime.now()}, Uplink message sent to invalid port: {port_number}. Message content: {decoded_data}"
+            log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Uplink message sent to invalid port: {port_number}. Message content: {decoded_data}"
         
         # Process any remaining bytes after the float
         additional_data = remaining_data[4:]
@@ -306,15 +306,15 @@ def on_message(client, userdata, msg):
     except json.JSONDecodeError as e:
         log_filename = ALARMS_PATH + "Alarm_Error.log"
         alarm = True
-        log_message = f"{datetime.now()}, Error decoding JSON: {e}\n"
+        log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Error decoding JSON: {e}\n"
     except KeyError as e:
         log_filename = ALARMS_PATH + "Alarm_Error.log"
         alarm = True
-        log_message = f"{datetime.now()}, KeyError - reason: {str(e)}\n"
+        log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, KeyError - reason: {str(e)}\n"
     except Exception as e:
         log_filename = ALARMS_PATH + "Alarm_Error.log"
         alarm = True
-        log_message = f"{datetime.now()}, An unexpected error occurred: {e}\n"
+        log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, An unexpected error occurred: {e}\n"
     # Log data to the file
     write_to_log(log_message=log_message, log_filename=log_filename, alarm=alarm)
 #initial setup
@@ -339,9 +339,9 @@ device_eui_map = load_or_create_device_mappings()
 #log_request_thread.start()
 
 # Testing of the alarm and error page
-#write_to_log(f"{datetime.now()}, Error: decoding JSON:\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
-#write_to_log(f"{datetime.now()}, L6470 Status Reg (Hex): status_reg:#06x, (Decimal): status_reg, Error: error_text\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
-#write_to_log(f"{datetime.now()}, Device device_number (eui:dev_eui) has just been rebooted.\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
+write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Error: decoding JSON:\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
+write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, L6470 Status Reg (Hex): status_reg:#06x, (Decimal): status_reg, Error: error_text\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
+write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Device device_number (eui:dev_eui) has just been rebooted.\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
 
 # Start MQTT client loop
 client.loop_start()
