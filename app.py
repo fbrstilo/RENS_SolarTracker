@@ -71,15 +71,21 @@ def admin():
 @app.route('/alarms-errors', methods=['GET', 'POST'])
 def alarms_errors():
     if request.method =='GET':
-        
-        return render_template('new_alarms_errors.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logged_in=validate_login(request))
+        id = request.args.get('id')
+        if(id == 'new-alarms-errors'):
+            return render_template('new_alarms_errors.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logged_in=validate_login(request))
+        elif(id == 'alarms_and_errors_archive'):
+            filepath = tr.ALARMS_PATH + "Alarm_Error.log"
+            with open(filepath, 'r') as f:
+                data = f.read()
+                return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, data=data, logged_in=validate_login(request))
     else:
         if 'dismiss-all' in request.form:
             tr.alarms_and_errors.remove_all_errors()
         else:
             id_to_remove = request.form['dismiss']
             tr.alarms_and_errors.remove_error_by_id(int(id_to_remove))
-        return redirect('/alarms-errors')
+        return redirect('/alarms-errors?id=new-alarms-errors')
 
 @app.route('/device', methods=['GET', 'POST'])
 def device_on_select():

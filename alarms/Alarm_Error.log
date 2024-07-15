@@ -15,18 +15,3 @@
 2024-07-11 10:01:19.013776, The device has just been rebooted.
 2024-07-11 10:21:28.653896, The device has just been rebooted.
 2024-07-11 15:01:35.391286, The device has just been rebooted.
-2024-07-15 08:13:06.206805, Error: decoding JSON:
-2024-07-15 08:13:06.213048, L6470 Status Reg (Hex): status_reg:#06x, (Decimal): status_reg, Error: error_text
-2024-07-15 08:13:06.214698, Device device_number (eui:dev_eui) has just been rebooted.
-2024-07-15 08:13:07.072974, Error: decoding JSON:
-2024-07-15 08:13:07.078964, L6470 Status Reg (Hex): status_reg:#06x, (Decimal): status_reg, Error: error_text
-2024-07-15 08:13:07.080117, Device device_number (eui:dev_eui) has just been rebooted.
-2024-07-15 08:51:05.906896, Error: decoding JSON:
-2024-07-15 08:51:05.965352, L6470 Status Reg (Hex): status_reg:#06x, (Decimal): status_reg, Error: error_text
-2024-07-15 08:51:05.966908, Device device_number (eui:dev_eui) has just been rebooted.
-2024-07-15 09:10:02.228925, Error: decoding JSON:
-2024-07-15 09:10:02.236634, L6470 Status Reg (Hex): status_reg:#06x, (Decimal): status_reg, Error: error_text
-2024-07-15 09:10:02.237741, Device device_number (eui:dev_eui) has just been rebooted.
-2024-07-15 09:38:25.215579, Error: decoding JSON:
-2024-07-15 09:38:25.277806, L6470 Status Reg (Hex): status_reg:#06x, (Decimal): status_reg, Error: error_text
-2024-07-15 09:38:25.279766, Device device_number (eui:dev_eui) has just been rebooted.

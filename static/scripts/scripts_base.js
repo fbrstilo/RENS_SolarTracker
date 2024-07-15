@@ -34,9 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
         let adminButton = document.getElementById('admin');
         adminButton.classList.add('active');
     }
-    else if(window.location.pathname.startsWith('/new-alarms-errors')){
-        let errorsButton = document.getElementById('new-alarms-errors');
-        if(errorsButton) errorsButton.classList.add('active');
+    else if(window.location.pathname.startsWith('/alarms-errors')){
+        let errorsButton = document.getElementById('collapsible-alarms');
+        errorsButton.classList.add('active');
+        errorsButton.nextElementSibling.style.display = 'block';
     }
     else{
         let homeButton = document.getElementById('home')

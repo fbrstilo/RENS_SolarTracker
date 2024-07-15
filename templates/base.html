@@ -22,18 +22,14 @@
     </header>
     <div class="container">
         <div class="sidebar">
-            <div class="content">
-                {% for err in logs %}
-                <a href="/logs?id={{log}}">
-                    <div id="{{log}}" class="button">
-                        {{log}}
-                    </div>
-                </a>
-                {% endfor %}
-            </div>
             <a href="/">
                 <div id="home" class="button">
                     Home
+                </div>
+            </a>
+            <a href="/admin">
+                <div id="admin" class="button">
+                    Admin
                 </div>
             </a>
             <button class="collapsible" id="collapsible-alarms"
@@ -42,26 +38,21 @@
                 <b>{{alarms_and_errors|count}} NEW ALARMS/ERRORS</b>
                 </button>
                 <div class="content">
-                <a href="/alarms-errors">
+                <a href="/alarms-errors?id=new-alarms-errors">
                     <div id="new-alarms-errors" class="button" style="background-color: #ff4545;">
                         New alarms and errors
                     </div>
                 </a>
                 {% else %}
-                >Alarms and errors </button>
+                >Alarms and errors</button>
                 <div class="content">
                 {% endif %}
-                <a href="/alarms-errors?id=Alarm_Error.log">
+                <a href="/alarms-errors?id=alarms_and_errors_archive">
                     <div id="alarms_and_errors_archive" class="button">
                         Alarms and errors archive
                     </div>
                 </a>
                 </div>
-            <a href="/admin">
-                <div id="admin" class="button">
-                    Admin
-                </div>
-            </a>
             <button class="collapsible" id="collapsible-devices">Devices</button>
             <div class="content">
                 {% for device in devices %}
