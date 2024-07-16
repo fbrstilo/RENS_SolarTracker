@@ -9,10 +9,13 @@ import os
 import logging
 import time
 import threading
+import schedule
+import atexit
 
 LOGS_PATH = 'logs/'
 ALARMS_PATH = 'alarms/'
 JSONS_PATH = 'jsons/'
+SECONDS_IN_DAY = 24*60*60 
 
 # Setup logging
 logging.basicConfig(level=logging.WARNING, filename=f'{LOGS_PATH}EventLogger.log',
@@ -162,11 +165,27 @@ def on_connect(client, userdata, flags, rc):
         print(f"Failed to connect, return code {rc}\n")
 
 def write_to_log(log_message, log_path, alarm = False):
-    print(log_message.rstrip())
     if(alarm == True):
         alarms_and_errors.add_error(log_message) # Add alarms and errors to a collection for individual review
     with open(log_path, 'a') as log_file:
         log_file.write(log_message)
+
+def delete_logs(days):
+    logs = [f for f in os.listdir(LOGS_PATH) if(os.path.isfile(os.path.join(LOGS_PATH, f)) and f.endswith('.log'))] # put all .log files in one container
+    for log in logs:
+        timeModified = os.path.getmtime(LOGS_PATH + log)
+        if(((datetime.now().timestamp() - timeModified)/SECONDS_IN_DAY) > days):
+            try:
+                os.remove(LOGS_PATH + log)
+            except Exception as e: # deleting of open files will always fail
+                open(LOGS_PATH + log, 'w').close() # delete content instead
+                print(e)
+
+def delete_logs_threaded(days):
+    schedule.every().day.at('00:00').do(delete_logs, days) # every day at midnight delete logs older than 30 days
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
 def on_message(client, userdata, msg):
     global downlink_sent, downlink_port_to_confirm, downlink_data_to_confirm
@@ -332,6 +351,11 @@ client.connect(broker_address)
 
 # Load or create device mappings
 device_eui_map = load_or_create_device_mappings()
+
+# delete old logs enery day at midnight
+old_logs_thread = threading.Thread(target=delete_logs_threaded, args=[30,])
+old_logs_thread.daemon = True # task is an infinite loop, set as daemon so it exits together with main thread
+old_logs_thread.start()
 
 # Start the scheduled task for requesting the last log every X minute
 # UNCOMMENT TWO LINES BELOW IF YOU WANT TO RECEIVE CURRENT LOG EVERY X MINUTES
