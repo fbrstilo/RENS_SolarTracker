@@ -7,8 +7,7 @@ import struct
 import threading
 import logging
 import re
-from io import StringIO, BytesIO
-import werkzeug
+from io import BytesIO
 
 POSITION_CONTROL_PORT = 1
 PARAMETER_SETTINGS_PORT = 3
@@ -73,18 +72,20 @@ def admin():
     
 @app.route('/alarms-errors', methods=['GET', 'POST'])
 def alarms_errors():
+    filepath = tr.ALARMS_PATH + "Alarm_Error.log"
     if request.method =='GET':
         id = request.args.get('id')
         if(id == 'new-alarms-errors'):
             return render_template('new_alarms_errors.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logged_in=validate_login(request))
         elif(id == 'alarms_and_errors_archive'):
-            filepath = tr.ALARMS_PATH + "Alarm_Error.log"
             with open(filepath, 'r') as f:
                 data = f.read()
                 return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, data=data, logged_in=validate_login(request), logSelected="alarms/Alarm_Error.log")
     else:
         if 'dismiss-all' in request.form:
             tr.alarms_and_errors.remove_all_errors()
+        elif 'delete-log' in request.form:
+            open(filepath, 'w').close() # delete file contents
         else:
             id_to_remove = request.form['dismiss']
             tr.alarms_and_errors.remove_error_by_id(int(id_to_remove))
@@ -148,15 +149,22 @@ def device_on_select():
 @app.route('/logs', methods=['GET', 'POST'])
 def log_on_select():
     global devices, logs
-    load_devices()
-    load_logs()
-    logged_in = True if validate_login(request) else False
     filename = f"{request.args.get('id')}"
-    filepath = f"{tr.LOGS_PATH}{filename}"
-    downloadCSV = True if filename.startswith('Device') else False # allow downloading .csv if the log belongs to a speciffic device
-    with open(filepath, 'r') as f:
-        data = f.read()
-    return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logSelected=filepath, data=data, logged_in=logged_in, downloadCSV=downloadCSV)
+    if(request.method == 'GET'):
+        load_devices()
+        load_logs()
+        logged_in = True if validate_login(request) else False
+        filepath = f"{tr.LOGS_PATH}{filename}"
+        downloadCSV = True if filename.startswith('Device') else False # allow downloading .csv if the log belongs to a speciffic device
+        with open(filepath, 'r') as f:
+            data = f.read()
+        return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logSelected=filepath, data=data, logged_in=logged_in, downloadCSV=downloadCSV)
+    else:
+        if('delete-log' in request.form):
+            if(os.path.exists(f"{tr.LOGS_PATH}{filename}")):
+                os.remove(f"{tr.LOGS_PATH}{filename}")
+                return redirect('/')
+        return redirect(f'/logs?id={filename}')
 
 @app.route('/download', methods=['POST'])
 def download_log():
