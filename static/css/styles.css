@@ -253,3 +253,9 @@ input[type=text], input[type=password] {
 .highlight-red {
     color: red;
 }
+.highlight-blue{
+    color: #4FC1FF;
+}
+.highlight-green{
+    color: #009440;
+}

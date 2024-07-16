@@ -15,7 +15,7 @@
     {% for err in alarms_and_errors %}
     <form action="" method="POST" id="error{{err.error_id}}" class="error">
         <div class="box">
-            <p class="error-text"><span style="color: #009440">{{err.timestamp}}</span> {{err.content}}</p>
+            <p class="error-text"><span class="highlight-green">{{err.timestamp}}</span> {{err.content}}</p>
             <button name="dismiss" id="dismiss{{err.error_id}}" value="{{err.error_id}}" class="submit-button dismiss">Dismiss</button>
         </div>
     </form>

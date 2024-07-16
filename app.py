@@ -115,7 +115,7 @@ def device_on_select():
                 downlink_data += tilt_bytes
             else:
                  downlink_data.append(0)
-            #tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), POSITION_CONTROL_PORT)
+            tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), POSITION_CONTROL_PORT)
             wait = int(defaults['delta-time'])
         
         elif 'submit-log-request' in request.form:
@@ -125,18 +125,18 @@ def device_on_select():
                  log_request_thread.start()
              else:
                  downlink_data.append(0)
-                 #tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), LOG_REQUEST_PORT)
+                 tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), LOG_REQUEST_PORT)
                  wait = int(defaults['delta-time'])
             
         elif 'submit-reset' in request.form:
             downlink_data = bytearray([0x55, 0x55, 0x55, 0x55])  # System reset command
-            #tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), RESET_PORT)
+            tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), RESET_PORT)
             wait = int(defaults['delta-time'])
         
         if(validate_login(request)):
             if 'params' in request.form:
                 downlink_data = handle_params(request)
-                #tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), PARAMETER_SETTINGS_PORT)
+                tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), PARAMETER_SETTINGS_PORT)
                 wait = int(defaults['delta-time'])
             elif 'submit-defaults' in request.form:
                 wait = 7*int(defaults['delta-time'])
@@ -316,7 +316,7 @@ def submit_all_defaults(device_number):
     downlink_data.append(int(defaults["siren-on-time"]))
     downlink_data.append(int(defaults["insolation"]))
     downlink_data.extend([0x00] * 6)  # Append 7 more bytes of 0x00 to complete the message
-    #tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
+    tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
     time.sleep(int(defaults['delta-time']))
 
     # global position
@@ -329,7 +329,7 @@ def submit_all_defaults(device_number):
     lon_hex = struct.pack('>f', longitude).hex()
     downlink_data += bytes.fromhex(lat_hex)
     downlink_data += bytes.fromhex(lon_hex)
-    #tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
+    tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
     time.sleep(int(defaults['delta-time']))
 
     downlink_data = bytearray()
@@ -341,7 +341,7 @@ def submit_all_defaults(device_number):
     downlink_data.append(add_or_subtract)
     downlink_data += offset_seconds_bytes
     downlink_data.extend([0x00] * 6)  # Append 6 more bytes of 0x00 to complete the message
-    #tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
+    tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
     time.sleep(int(defaults['delta-time']))
 
     downlink_data = bytearray()
@@ -353,7 +353,7 @@ def submit_all_defaults(device_number):
     w_limit_hex = struct.pack('>i', w_limit).hex()
     downlink_data += bytes.fromhex(e_limit_hex)
     downlink_data += bytes.fromhex(w_limit_hex)
-    #tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
+    tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
     time.sleep(int(defaults['delta-time']))
 
     downlink_data = bytearray()
@@ -365,7 +365,7 @@ def submit_all_defaults(device_number):
     h2_hex = struct.pack('>f', h2).hex()
     downlink_data += bytes.fromhex(h1_hex)
     downlink_data += bytes.fromhex(h2_hex)
-    #tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
+    tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
     time.sleep(int(defaults['delta-time']))
 
     downlink_data = bytearray()
@@ -377,7 +377,7 @@ def submit_all_defaults(device_number):
     dist_hex = struct.pack('>f', dist).hex()
     downlink_data += bytes.fromhex(l_hex)
     downlink_data += bytes.fromhex(dist_hex)
-    #tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
+    tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
     time.sleep(int(defaults['delta-time']))
 
     downlink_data = bytearray()
@@ -389,7 +389,7 @@ def submit_all_defaults(device_number):
     home_pos_hex = struct.pack('>f', home_pos).hex()
     downlink_data += bytes.fromhex(motor_rpd_hex)
     downlink_data += bytes.fromhex(home_pos_hex)
-    #tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
+    tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
     time.sleep(int(defaults['delta-time']))
 
     return
@@ -398,7 +398,7 @@ def log_request(device_number):
     device_eui = device_eui_from_number(device_number)
     for i in range(8):
         downlink_data = bytearray([1, i])
-        #tr.send_downlink(device_eui, bytes(downlink_data), LOG_REQUEST_PORT)
+        tr.send_downlink(device_eui, bytes(downlink_data), LOG_REQUEST_PORT)
         print(f"Downlink message sent for block {i}. Waiting for {defaults['delta-time']} seconds before sending the next request.")
         time.sleep(int(defaults['delta-time']))
 

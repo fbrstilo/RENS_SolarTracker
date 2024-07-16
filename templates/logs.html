@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block head %}
-
+<script type="module" src="{{ url_for('static', filename='scripts/scripts_logs.js') }}"></script>
 {% endblock %}
 
 {% block body %}
@@ -24,7 +24,7 @@
             </form>
         </div>
         <div class="box">
-            <pre>{{ data }}</pre>
+            <pre id="text">{{ data }}</pre>
         </div>
     </div>
 </div>
