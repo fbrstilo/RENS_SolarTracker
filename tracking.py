@@ -10,7 +10,6 @@ import logging
 import time
 import threading
 import schedule
-import atexit
 
 LOGS_PATH = 'logs/'
 ALARMS_PATH = 'alarms/'

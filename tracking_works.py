@@ -1,3 +1,6 @@
+# Known working version of the script
+# KEEP UNTIL THE NEW SCRIPT IS FULLY TESTED
+
 import json
 import base64
 import paho.mqtt.client as mqtt

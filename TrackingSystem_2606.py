@@ -1,3 +1,7 @@
+# Original console application
+# Deprecated by web interface
+# Kept for purposes of backup
+
 import json
 import base64
 import paho.mqtt.client as mqtt
@@ -10,7 +14,6 @@ import logging
 import threading
 import time
 
-# pre-web interface control script
 
 # Setup logging
 logging.basicConfig(level=logging.WARNING, filename=r'EventLogger.log',
