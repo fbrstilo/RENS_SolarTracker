@@ -8,6 +8,16 @@
 <div class="container">
     <div class="main-content">
         <div class="box">
+            <form action="/download" method="POST" id="download-form">
+                <h2>Download log</h2>
+                <button name="download-txt" id="download-txt" value='1' class="submit-button">Download .txt</button>
+                {% if downloadCSV == True %}
+                <button name="download-csv" id="download-csv" value='1' class="submit-button">Download .csv</button>
+                {% endif %}
+                <input type="hidden" name="filepath" value="{{ logSelected }}">
+            </form>
+        </div>
+        <div class="box">
             <pre>{{ data }}</pre>
         </div>
     </div>

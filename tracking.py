@@ -339,9 +339,9 @@ device_eui_map = load_or_create_device_mappings()
 #log_request_thread.start()
 
 # Testing of the alarm and error page
-write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Error: decoding JSON:\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
-write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, L6470 Status Reg (Hex): status_reg:#06x, (Decimal): status_reg, Error: error_text\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
-write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Device device_number (eui:dev_eui) has just been rebooted.\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
+#write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Error: decoding JSON:\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
+#write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, L6470 Status Reg (Hex): status_reg:#06x, (Decimal): status_reg, Error: error_text\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
+#write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Device device_number (eui:dev_eui) has just been rebooted.\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
 
 # Start MQTT client loop
 client.loop_start()

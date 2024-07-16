@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, make_response
+from flask import Flask, render_template, redirect, request, make_response, send_file
 import json
 import os
 import tracking as tr
@@ -6,6 +6,9 @@ import time
 import struct
 import threading
 import logging
+import re
+from io import StringIO, BytesIO
+import werkzeug
 
 POSITION_CONTROL_PORT = 1
 PARAMETER_SETTINGS_PORT = 3
@@ -78,7 +81,7 @@ def alarms_errors():
             filepath = tr.ALARMS_PATH + "Alarm_Error.log"
             with open(filepath, 'r') as f:
                 data = f.read()
-                return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, data=data, logged_in=validate_login(request))
+                return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, data=data, logged_in=validate_login(request), logSelected="alarms/Alarm_Error.log")
     else:
         if 'dismiss-all' in request.form:
             tr.alarms_and_errors.remove_all_errors()
@@ -142,17 +145,30 @@ def device_on_select():
         timeout_enable = True
         return redirect(f'/device?id=device{device_number}')
 
-@app.route('/logs')
+@app.route('/logs', methods=['GET', 'POST'])
 def log_on_select():
     global devices, logs
     load_devices()
     load_logs()
     logged_in = True if validate_login(request) else False
-    filepath = f"{tr.LOGS_PATH}{request.args.get('id')}"
+    filename = f"{request.args.get('id')}"
+    filepath = f"{tr.LOGS_PATH}{filename}"
+    downloadCSV = True if filename.startswith('Device') else False # allow downloading .csv if the log belongs to a speciffic device
     with open(filepath, 'r') as f:
         data = f.read()
-        return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, data=data, logged_in=logged_in)
-    
+    return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logSelected=filepath, data=data, logged_in=logged_in, downloadCSV=downloadCSV)
+
+@app.route('/download', methods=['POST'])
+def download_log():
+    filepath = request.form['filepath']
+    filename = os.path.basename(filepath)
+    if('download-txt' in request.form):
+        return send_file(path_or_file=filepath, as_attachment=True)
+    elif('download-csv' in request.form):
+        file = BytesIO()
+        file.write(str.encode(log_to_csv(filepath)))
+        file.seek(0)
+        return send_file(path_or_file=file, mimetype='text/csv', as_attachment=True, download_name=os.path.splitext(filename)[0] + '.csv')
 
 def device_eui_from_number(device_number):
      global devices
@@ -412,6 +428,13 @@ def update_json(request, file_path):
         data[k] = v
     with open(file_path, "w") as f:
         json.dump(data, f)
+
+def log_to_csv(filepath):
+    with open(filepath, 'r') as f:
+        content = f.read()
+    csvdata = 'Date,Time,Panel tilt\n'
+    csvdata += re.sub(r"[^\S\r\n]+", ",", content.strip()) # format the log as a .csv (replace whitespace with commas, preserve newlines)
+    return csvdata
 
 def validate_login(request):
     admin_token = request.cookies.get('admin_token')
