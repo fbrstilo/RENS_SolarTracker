@@ -28,6 +28,19 @@ function closePopup_old(countdownTimer) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    const parametersCollapsibles = document.querySelectorAll(".collapsible");
+    parametersCollapsibles.forEach(collapsible => {
+        collapsible.addEventListener('click', function() {
+            this.classList.toggle('active');
+            const content = this.nextElementSibling;
+            if (content.style.display === "flex") {
+                content.style.display = "none";
+            } else {
+                content.style.display = "flex";
+            }
+        });
+    });
+
     const manualToggleSwitch = document.getElementById('manual-toggle-switch');
     const manualToggleLabel = document.getElementById('manual-toggle-label');
     const elevationTextBox = document.getElementById('elevation-text-box');

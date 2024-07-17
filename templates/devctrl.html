@@ -40,6 +40,24 @@
             </div>
         </form>
     </div>
+    {% if device_logs|count > 0 %}
+    <div class="box">
+        <button class="collapsible main-content-dropdown">
+            <h2>
+                Device logs
+            </h2>
+        </button>
+        <div class="content">
+            {% for log in device_logs %}
+            <a href="/device?id=device{{device_number}}&log={{log}}">
+                <div id="{{log}}" class="button">
+                    {{ log }}
+                </div>
+            </a>
+            {% endfor %} 
+        </div>
+    </div>
+    {% endif %}
     {% block parameters %}{% endblock %}
     <div class="box">
         <form action="" method="POST" id="reset">

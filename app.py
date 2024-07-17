@@ -80,7 +80,7 @@ def alarms_errors():
         elif(id == 'alarms_and_errors_archive'):
             with open(filepath, 'r') as f:
                 data = f.read()
-                return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, data=data, logged_in=validate_login(request), logSelected="alarms/Alarm_Error.log")
+                return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, data=data, logged_in=validate_login(request), log_selected=filepath)
     else:
         if 'dismiss-all' in request.form:
             tr.alarms_and_errors.remove_all_errors()
@@ -96,14 +96,47 @@ def device_on_select():
     global defaults, timeout_enable, wait, devices, logs
     load_devices()
     load_logs()
-    device_number = request.args.get('id').removeprefix('device')
+    id = request.args.get('id')
+    device_number = id.removeprefix('device')
+    device_logs = []
+    for file in os.listdir(tr.LOGS_PATH + id + '/'):
+        if file.endswith(".log"):
+            device_logs.append(os.path.join("", file))
     if request.method =='GET':
         wait = 0 if timeout_enable == False else wait
         timeout_enable = False
-        if(validate_login(request)):
-            return render_template('devctrl_logged_in.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, wait=wait, logged_in=True)
+        logged_in = validate_login(request)
+        log_selected = request.args.get('log')
+        if(log_selected):
+            filepath = f"{tr.LOGS_PATH}{id}/{log_selected}"
+            with open(filepath, 'r') as f:
+                data = f.read()
+                return render_template('logs.html',
+                                       alarms_and_errors=tr.alarms_and_errors,
+                                       devices=devices.items(),
+                                       logs=logs,
+                                       data=data,
+                                       logged_in=logged_in,
+                                       log_selected=f"{tr.LOGS_PATH}{id}/{log_selected}",
+                                       csv_allow = True)
+        if(logged_in):
+            return render_template('devctrl_logged_in.html',
+                                    alarms_and_errors=tr.alarms_and_errors,
+                                    device_logs = device_logs,
+                                    device_number=device_number,
+                                    devices=devices.items(),
+                                    logs=logs,
+                                    wait=wait,
+                                    logged_in=True)
         else:
-            return render_template('devctrl.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, wait=wait, logged_in=False)
+            return render_template('devctrl.html',
+                                   alarms_and_errors=tr.alarms_and_errors,
+                                   device_logs = device_logs,
+                                   device_number=device_number,
+                                   devices=devices.items(),
+                                   logs=logs,
+                                   wait=wait,
+                                   logged_in=False)
     else:
         downlink_data=bytearray()
         if 'submit-elevation' in request.form:  
@@ -132,6 +165,12 @@ def device_on_select():
             downlink_data = bytearray([0x55, 0x55, 0x55, 0x55])  # System reset command
             tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), RESET_PORT)
             wait = int(defaults['delta-time'])
+
+        elif('delete-log' in request.form):
+            filepath = f"{tr.LOGS_PATH}{id}/{request.args.get('log')}"
+            if(os.path.exists(filepath)):
+                os.remove(filepath)
+                return redirect(f'/device?id=device{device_number}')
         
         if(validate_login(request)):
             if 'params' in request.form:
@@ -162,10 +201,9 @@ def log_on_select():
         load_logs()
         logged_in = True if validate_login(request) else False
         filepath = f"{tr.LOGS_PATH}{filename}"
-        downloadCSV = True if filename.startswith('Device') else False # allow downloading .csv if the log belongs to a speciffic device
         with open(filepath, 'r') as f:
             data = f.read()
-        return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logSelected=filepath, data=data, logged_in=logged_in, downloadCSV=downloadCSV)
+        return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logSelected=filepath, data=data, logged_in=logged_in)
     else:
         if('delete-log' in request.form):
             if(os.path.exists(f"{tr.LOGS_PATH}{filename}")):

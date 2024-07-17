@@ -11,16 +11,16 @@
             <form action="/download" method="POST" id="download-form">
                 <h2>Download log</h2>
                 <button name="download-txt" id="download-txt" value='1' class="submit-button">Download .txt</button>
-                {% if downloadCSV == True %}
+                {% if csv_allow == True %}
                 <button name="download-csv" id="download-csv" value='1' class="submit-button">Download .csv</button>
                 {% endif %}
-                <input type="hidden" name="filepath" value="{{ logSelected }}">
+                <input type="hidden" name="filepath" value="{{ log_selected }}">
             </form>
         </div>
         <div class="box">
             <h2>DELETE LOG</h2>
             <form action="" method="POST" id="delete-log-form">
-                <button name="delete-log" id="delete-log" value="{{ logSelected }}" class="submit-button" style="background-color: #ff4545;"><b>DELETE LOG</b></button>
+                <button name="delete-log" id="delete-log" value="{{ log_selected }}" class="submit-button" style="background-color: #ff4545;"><b>DELETE LOG</b></button>
             </form>
         </div>
         <div class="box">

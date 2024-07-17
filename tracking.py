@@ -12,7 +12,7 @@ import threading
 import schedule
 
 LOGS_PATH = 'logs/'
-ALARMS_PATH = 'alarms/'
+ALARMS_PATH = LOGS_PATH + 'alarms/'
 JSONS_PATH = 'jsons/'
 SECONDS_IN_DAY = 24*60*60 
 
@@ -170,15 +170,26 @@ def write_to_log(log_message, log_path, alarm = False):
         log_file.write(log_message)
 
 def delete_logs(days):
-    logs = [f for f in os.listdir(LOGS_PATH) if(os.path.isfile(os.path.join(LOGS_PATH, f)) and f.endswith('.log'))] # put all .log files in one container
+    logs = find_files_with_extension(root_folder=LOGS_PATH, extension='.log') # put all .log files in one container
+    print(logs)
     for log in logs:
         timeModified = os.path.getmtime(LOGS_PATH + log)
+        print(f"Log: {log} Modified: {timeModified}")
         if(((datetime.now().timestamp() - timeModified)/SECONDS_IN_DAY) > days):
             try:
                 os.remove(LOGS_PATH + log)
             except Exception as e: # deleting of open files will always fail
                 open(LOGS_PATH + log, 'w').close() # delete content instead
                 print(e)
+
+def find_files_with_extension(root_folder, extension):
+    file_paths = []
+    for root, _, files in os.walk(root_folder):
+        for file in files:
+            if file.endswith(extension):
+                relative_path = os.path.relpath(os.path.join(root, file), root_folder)
+                file_paths.append(relative_path)
+    return file_paths
 
 def delete_logs_threaded(days):
     schedule.every().day.at('00:00').do(delete_logs, days) # every day at midnight delete logs older than 30 days
@@ -188,7 +199,7 @@ def delete_logs_threaded(days):
 
 def on_message(client, userdata, msg):
     global downlink_sent, downlink_port_to_confirm, downlink_data_to_confirm
-    log_filename = "default.log"  # Default log filename
+    log_filename = LOGS_PATH + "default.log"  # Default log filename
     print("Message received!")
     try:
         payload = json.loads(msg.payload.decode("utf-8"))
@@ -242,12 +253,12 @@ def on_message(client, userdata, msg):
         elif port_number == 4: # Recieved logs
             # Check the length of the remaining data
             if len(remaining_data) == 4:
-                log_filename = LOGS_PATH + f"Device_{device_number}_{date_str}_{hour_str}.log"
+                log_filename = LOGS_PATH + f"device{device_number}/" + f"{date_str}_{hour_str}.log"
                 # Decode the last four bytes as a float
                 ieee_float = struct.unpack('>f', remaining_data)[0]
                 log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\t\t\t\t\t{ieee_float:.2f}\n"
             else:
-                log_filename = LOGS_PATH + f"Device_{device_number}_{date_str}.log"
+                log_filename = LOGS_PATH + f"device{device_number}/" + f"{date_str}.log"
                 with open(log_filename, 'a') as log_file:
                     # Add column descriptors - removed for easier parsing to .csv
                     #if log_file.tell() == 0:
@@ -266,7 +277,7 @@ def on_message(client, userdata, msg):
                     return
         # If automatic log sending is enabled on the end node, those get sent to port 64
         elif port_number == 64:
-            log_filename = LOGS_PATH + f"Device_{device_number}_{date_str}.log"
+            log_filename = LOGS_PATH + f"device{device_number}/" + f"{date_str}.log"
             if len(remaining_data) >= 4:
                 # If there are at least 4 bytes, interpret them as a float
                 ieee_bytes = remaining_data[:4]

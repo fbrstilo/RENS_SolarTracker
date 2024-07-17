@@ -1,19 +1,6 @@
 import { isInt, isFloat } from "./scripts_base.js";
 
 document.addEventListener('DOMContentLoaded', () => {
-    const parametersCollapsibles = document.getElementById("parameters").querySelectorAll(".collapsible");
-    parametersCollapsibles.forEach(collapsible => {
-        collapsible.addEventListener('click', function() {
-            this.classList.toggle('active');
-            const content = this.nextElementSibling;
-            if (content.style.display === "flex") {
-                content.style.display = "none";
-            } else {
-                content.style.display = "flex";
-            }
-        });
-    });
-
     // disable form submitting when clicking dropdown
     const parameterDropdowns = document.querySelectorAll('.main-content-dropdown')
     parameterDropdowns.forEach(dropdown => {
