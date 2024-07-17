@@ -204,9 +204,10 @@ def on_message(client, userdata, msg):
     try:
         payload = json.loads(msg.payload.decode("utf-8"))
         base64_data = payload.get("data")
-
+        print(base64_data)
         # Decode the port number from the first byte
         port_number = payload.get("fPort")
+        print(port_number)
         dev_eui = payload["deviceInfo"]["devEui"]
 
         # Get device number from device_eui_map
@@ -345,7 +346,7 @@ def on_message(client, userdata, msg):
         alarm = True
         log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, An unexpected error occurred: {e}\n"
     # Log data to the file
-    write_to_log(log_message=log_message, log_filename=log_filename, alarm=alarm)
+    write_to_log(log_message=log_message, log_path=log_filename, alarm=alarm)
 #initial setup
 load_keys()
 mqtt_setup()
