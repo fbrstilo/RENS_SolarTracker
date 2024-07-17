@@ -47,14 +47,14 @@
                 Device logs
             </h2>
         </button>
-        <div class="content">
-            {% for log in device_logs %}
-            <a href="/device?id=device{{device_number}}&log={{log}}">
-                <div id="{{log}}" class="button">
-                    {{ log }}
-                </div>
-            </a>
-            {% endfor %} 
+        <div class="content" style="flex-direction: column;">
+        {% for log in device_logs %}
+        <a href="/device?id=device{{device_number}}&log={{log}}">
+            <button id="{{log}}" class="log-button">
+                <h3>{{ log }}</h3>
+            </button>
+        </a> 
+        {% endfor %}
         </div>
     </div>
     {% endif %}

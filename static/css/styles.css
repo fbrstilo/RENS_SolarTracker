@@ -110,7 +110,7 @@ header .button {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.main-content .box .main-content-dropdown, .content .button{
+.main-content .box .main-content-dropdown, .log-button{
     background-color: rgba(255, 255, 255, 0);
     color: black;
     cursor: pointer;
@@ -123,7 +123,7 @@ header .button {
     border-radius: 5px;
 }
 
-.main-content .box .main-content-dropdown:hover{
+.main-content .box .main-content-dropdown:hover, .log-button:hover{
     background-color: rgb(221, 221, 221, 0.5);
 }
 
