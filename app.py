@@ -1,6 +1,7 @@
 from flask import Flask, render_template, redirect, request, make_response, send_file
 import json
 import os
+import shutil
 import tracking as tr
 import time
 import struct
@@ -182,11 +183,16 @@ def device_on_select():
                 submit_defaults_thread = threading.Thread(target=submit_all_defaults, args=(device_number,))
                 submit_defaults_thread.start()
             elif 'submit-delete-device' in request.form:
-                if os.path.exists('jsons/device_mappings.json'):
-                    with open('jsons/device_mappings.json', "r") as f:
+                if os.path.exists(f'{tr.JSONS_PATH}device_mappings.json'):
+                    with open(f'{tr.JSONS_PATH}device_mappings.json', "r") as f:
                         data = json.load(f)
                     del data[device_eui_from_number(device_number)]
-                    update_json(data, 'jsons/device_mappings.json')
+                    update_json(data, f'{tr.JSONS_PATH}device_mappings.json')
+                    # Also delete all device logs
+                    path = tr.LOGS_PATH + id
+                    print(path)
+                    if os.path.exists(path) and os.path.isdir(path):
+                        shutil.rmtree(path)
                     return redirect('/')
         
         timeout_enable = True
