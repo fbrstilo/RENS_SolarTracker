@@ -1,4 +1,4 @@
-function highlightWordsAndTimestamps() {
+document.addEventListener('DOMContentLoaded', () => {
     const pElement = document.getElementById('text');
     let htmlContent = pElement.innerHTML;
 
@@ -14,7 +14,23 @@ function highlightWordsAndTimestamps() {
         return `<span class="highlight-yellow">${match}</span>`;
     });
 
-    pElement.innerHTML = htmlContent;
-}
+    // Highlight ALL CAPS words
+    const allCapsWordsRegex = / [A-Z]+ /g;
+    htmlContent = htmlContent.replace(allCapsWordsRegex, match => {
+        return `<span class="highlight-blue">${match}</span>`;
+    });
 
-highlightWordsAndTimestamps();
+    pElement.innerHTML = htmlContent;
+
+    const deleteLogForm = document.getElementById("delete-log-form");
+    deleteLogForm.addEventListener('submit', function(event) {
+        const confirmed = confirm('Delete log?');
+
+        if(confirmed == true){
+            this.submit();
+        }
+        else{
+            event.preventDefault();
+        }
+    });
+});

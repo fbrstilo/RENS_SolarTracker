@@ -40,6 +40,7 @@
             </div>
         </form>
     </div>
+    {% block parameters %}{% endblock %}
     {% if device_logs|count > 0 %}
     <div class="box">
         <button class="collapsible main-content-dropdown">
@@ -58,7 +59,6 @@
         </div>
     </div>
     {% endif %}
-    {% block parameters %}{% endblock %}
     <div class="box">
         <form action="" method="POST" id="reset">
             <h2>REBOOT DEVICE</h2>

@@ -1,34 +1,7 @@
-import { isInt, isFloat } from "./scripts_base.js";
-
-
-function showPopup_old(){
-    document.getElementById('overlay').style.display = 'block';
-    document.getElementById('popup').style.display = 'block';
-    
-    // Initialize countdown
-    let remainingTime = document.getElementById('countdown').textContent;
-    
-    // Update countdown every second
-    let countdownTimer = setInterval(() => {
-        remainingTime--;
-        document.getElementById('timer').textContent = remainingTime;
-    
-        if (remainingTime <= 0) {
-            closePopup(countdownTimer);
-        }
-    }, 1000);
-}
-function closePopup_old(countdownTimer) {
-    document.getElementById('overlay').style.display = 'none';
-    document.getElementById('popup').style.display = 'none';
-
-    // Clear the countdown timer
-    clearInterval(countdownTimer);
-    countdownTimer = null;
-}
+import { isFloat } from "./scripts_base.js";
 
 document.addEventListener('DOMContentLoaded', () => {
-    const parametersCollapsibles = document.querySelectorAll(".collapsible");
+    const parametersCollapsibles = document.getElementById('main-content').querySelectorAll(".collapsible");
     parametersCollapsibles.forEach(collapsible => {
         collapsible.addEventListener('click', function() {
             this.classList.toggle('active');
@@ -116,11 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         else    submitButton.disabled = false;
     });
-    
-    //let wait_time = document.getElementById("timer").textContent;
-    //if(wait_time > 0){
-    //    showPopup();
-    //}
 
     const popup = document.getElementById('popup');
     const overlay = document.getElementById('overlay')

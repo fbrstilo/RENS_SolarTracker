@@ -31,6 +31,17 @@ document.addEventListener('DOMContentLoaded', () => {
         else    event.preventDefault();
     });
 
+    const deleteDeviceForm = document.getElementById("delete-device-form");
+    deleteDeviceForm.addEventListener('submit', function(event) {
+        const confirmed = confirm('Delete device?');
+        if(confirmed == true){
+            this.submit();
+        }
+        else{
+            event.preventDefault();
+        }
+    });
+
     // input sanitization
     // accept empty or valid values
     // fields left empty will revert to default values
