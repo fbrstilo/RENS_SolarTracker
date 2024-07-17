@@ -58,13 +58,13 @@ def admin():
             return render_template('admin.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, request_timeout=int(defaults['delta-time']), logged_in=True)
     else:
         if "submit-defaults" in request.form or "submit-delta-time" in request.form:
-            update_json(request=request, file_path=f"{tr.JSONS_PATH}defaults.json")
+            update_json_from_request(request=request, file_path=f"{tr.JSONS_PATH}defaults.json")
             load_defaults()
         elif "password-hash" in request.form:
             with open('adminpass', "w") as f:
                 f.write(request.form['password-hash'])
         else:
-            update_json(request=request, file_path=f"{tr.JSONS_PATH}keys.json")
+            update_json_from_request(request=request, file_path=f"{tr.JSONS_PATH}keys.json")
             tr.load_keys()
             if("submit-chirpstack-api" in request.form): tr.chirpstack_config()      
             if("submit-mqtt" in request.form): tr.mqtt_setup()
@@ -142,6 +142,13 @@ def device_on_select():
                 wait = 7*int(defaults['delta-time'])
                 submit_defaults_thread = threading.Thread(target=submit_all_defaults, args=(device_number,))
                 submit_defaults_thread.start()
+            elif 'submit-delete-device' in request.form:
+                if os.path.exists('jsons/device_mappings.json'):
+                    with open('jsons/device_mappings.json', "r") as f:
+                        data = json.load(f)
+                    del data[device_eui_from_number(device_number)]
+                    update_json(data, 'jsons/device_mappings.json')
+                    return redirect('/')
         
         timeout_enable = True
         return redirect(f'/device?id=device{device_number}')
@@ -423,7 +430,7 @@ def load_defaults():
         with open(filepath, "r") as f:
             defaults = json.load(f)
   
-def update_json(request, file_path):
+def update_json_from_request(request, file_path):
     kvps = []
     for k,v in request.form.items():
         if(v != ""):
@@ -434,8 +441,14 @@ def update_json(request, file_path):
     else: return -1
     for k,v in kvps:
         data[k] = v
-    with open(file_path, "w") as f:
-        json.dump(data, f)
+    return update_json(data, file_path)
+
+def update_json(data, file_path):
+    if os.path.exists(file_path):
+        with open(file_path, "w") as f:
+            json.dump(data, f)
+        return 0
+    else: return -1
 
 def log_to_csv(filepath):
     with open(filepath, 'r') as f:
