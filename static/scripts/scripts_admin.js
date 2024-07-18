@@ -43,24 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if(newPass != "" && newPass == newPassConfirm) submitButton.disabled = false;
         else    submitButton.disabled = true;
     });
-    passwordChangeForm.addEventListener('submit', function(event){
-        event.preventDefault(); // prevent form submission to handle the password hashing first
-        let newPass = document.getElementById('password');
-        let newPassHash = document.getElementById('password-hash');
-
-        window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(newPass.value)).then(function(hash) {
-            // Convert the ArrayBuffer to a hex string
-            let hashArray = Array.from(new Uint8Array(hash));
-            let hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            
-            newPassHash.value = hashHex;
-            console.log(newPassHash)
-    
-            passwordChangeForm.submit();
-        }).catch(function(error) {
-            console.error('Hashing failed:', error);
-        });
-    });
 
     const defaultsForm = document.getElementById('defaults');
     defaultsForm.addEventListener('change', function(event){

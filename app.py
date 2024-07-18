@@ -43,9 +43,9 @@ def login():
         else:
             return render_template('login.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logged_in=False)
     else:
-        token = request.form['pass-hash']
+        token = request.form['password']
         resp = make_response(redirect('/login'))
-        resp.set_cookie('admin_token', token)
+        resp.set_cookie('admin_token', value=token)
         return resp
 
 @app.route('/admin', methods=['GET', 'POST'])
@@ -62,9 +62,9 @@ def admin():
         if "submit-defaults" in request.form or "submit-delta-time" in request.form:
             update_json_from_request(request=request, file_path=f"{tr.JSONS_PATH}defaults.json")
             load_defaults()
-        elif "password-hash" in request.form:
+        elif "password" in request.form:
             with open('adminpass', "w") as f:
-                f.write(request.form['password-hash'])
+                f.write(request.form['password'])
         else:
             update_json_from_request(request=request, file_path=f"{tr.JSONS_PATH}keys.json")
             tr.load_keys()
@@ -518,4 +518,4 @@ load_defaults()
 load_devices()
 
 if __name__ == '__main__':
-    serve(app, host='0.0.0.0', port=80 )
+    serve(app, host='0.0.0.0', port=80, url_scheme='https')
