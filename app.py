@@ -9,6 +9,7 @@ import threading
 import logging
 import re
 from io import BytesIO
+from waitress import serve
 
 POSITION_CONTROL_PORT = 1
 PARAMETER_SETTINGS_PORT = 3
@@ -515,3 +516,6 @@ def validate_login(request):
 load_logs()
 load_defaults()
 load_devices()
+
+if __name__ == '__main__':
+    serve(app, host='0.0.0.0', port=80 )
