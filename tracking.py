@@ -129,7 +129,7 @@ def send_downlink(dev_eui, data, port):
 
     resp = client.Enqueue(req, metadata=auth_token) # response s kojim trenutno nista ne radimo
     log_filename = 'EventLogger.log'
-    log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Downlink message sent to Device {device_eui_map[dev_eui]} (dev_eui: {dev_eui})\nmessage: {req}"
+    log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Downlink message sent to Device {device_eui_map[dev_eui]} (dev_eui: {dev_eui} port: {port} data: {data})\n"
     write_to_log(log_message, LOGS_PATH + log_filename, alarm=False)
 
 # Convert float to bytes
