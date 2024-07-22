@@ -5,3 +5,5 @@ logs/*
 jsons/*
 !jsons/defaults.json
 !jsons/device_on_register.json
+*.docx
+*.tmp
