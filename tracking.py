@@ -10,6 +10,7 @@ import logging
 import time
 import threading
 import schedule
+import shutil
 
 LOGS_PATH = 'logs/'
 ALARMS_PATH = LOGS_PATH + 'alarms/'
@@ -217,6 +218,7 @@ def on_message(client, userdata, msg):
             # Device mapping doesn't exist, create one and save
             device_number = len(device_eui_map) + 1
             device_eui_map[dev_eui] = device_number
+            shutil.copyfile(src=JSONS_PATH + 'device_on_register.json', dst=JSONS_PATH + f'device{device_number}.json')
             save_device_mappings(device_eui_map)
         
         if not base64_data: # device rebooted
@@ -374,9 +376,9 @@ old_logs_thread.start()
 #log_request_thread.start()
 
 # Testing of the alarm and error page
-write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Error: decoding JSON:\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
-write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, L6470 Status Reg (Hex): status_reg:#06x, (Decimal): status_reg, Error: error_text\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
-write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Device device_number (eui:dev_eui) has just been rebooted.\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
+#write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Error: decoding JSON:\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
+#write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, L6470 Status Reg (Hex): status_reg:#06x, (Decimal): status_reg, Error: error_text\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
+#write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Device device_number (eui:dev_eui) has just been rebooted.\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
 
 # Start MQTT client loop
 client.loop_start()

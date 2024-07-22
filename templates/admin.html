@@ -10,7 +10,7 @@
         <form action="" method="POST" id="message-delta-time">
             <h2>Message delta time</h2>
             <div>
-                <input type="text" id="delta-time" name="delta-time" placeholder="current: {{ request_timeout }}s">
+                <input type="text" id="delta-time" name="delta-time" placeholder="current={{ defaults['delta-time'] }}s">
                 <button name="submit-delta-time" id="submit-delta-time" class="submit-button" disabled>Submit</button>
             </div>
         </form>
@@ -20,7 +20,7 @@
             <h2>MQTT setup</h2>
             <div>
                 <input type="text" id="mqtt-app-id" name="mqtt-app-id" placeholder="Application ID">
-                <input type="text" id="mqtt-broker-address" name="mqtt-broker-address" placeholder="Broker address">
+                <input type="text" id="mqtt-broker-address" name="mqtt-broker-address" placeholder="Broker address, current={{ keys['mqtt-broker-address'] }}">
                 <button name="submit-mqtt" id="submit-mqtt" class="submit-button" disabled>Submit</button>
             </div>
         </form>
@@ -30,7 +30,7 @@
             <h2>Chirpstack API setup</h2>
             <div>
                 <input type="text" id="chirpstack-api-key" name="chirpstack-api-key" placeholder="API key">
-                <input type="text" id="chirpstack-server-address" name="chirpstack-server-address" placeholder="Address">
+                <input type="text" id="chirpstack-server-address" name="chirpstack-server-address" placeholder="Server address, current={{ keys['chirpstack-server-address'] }}">
                 <button name="submit-chirpstack-api" id="submit-chirpstack-api" class="submit-button" disabled>Submit</button>
             </div>
         </form>
@@ -39,31 +39,31 @@
         <form action="" method="POST" id="defaults">
             <h2>Defaults</h2>
             <div>
-                <input type="text" id="siren-on-time" name="siren-on-time" placeholder="Siren on time (0-255s)">
+                <input type="text" id="siren-on-time" name="siren-on-time" placeholder="Siren on time (0-255s), current={{ defaults['siren-on-time'] }}">
                 <br><br>
-                <input type="text" id="insolation" name="insolation" placeholder="Insolation (%)">
+                <input type="text" id="insolation" name="insolation" placeholder="Insolation (%), current={{ defaults['insolation-percentage'] }}">
                 <br><br>
-                <input type="text" id="latitude" name="latitude" placeholder="Latitude">
+                <input type="text" id="latitude" name="latitude" placeholder="Latitude, current={{ defaults['latitude'] }}">
                 <br><br>
-                <input type="text" id="longitude" name="longitude" placeholder="Longitude">
+                <input type="text" id="longitude" name="longitude" placeholder="Longitude, current={{ defaults['longitude'] }}">
                 <br><br>
-                <input type="text" id="time-offset" name="time-offset" placeholder="Time offset (-65535 to 65535)">
+                <input type="text" id="time-offset" name="time-offset" placeholder="Time offset (-65535 to 65535), current={{ defaults['time-offset'] }}">
                 <br><br>
-                <input type="text" id="limit-east" name="limit-east" placeholder="East limit">
+                <input type="text" id="limit-east" name="limit-east" placeholder="East limit, current={{ defaults['limit-east'] }}">
                 <br><br>
-                <input type="text" id="limit-west" name="limit-west" placeholder="West limit">
+                <input type="text" id="limit-west" name="limit-west" placeholder="West limit, current={{ defaults['limit-west'] }}">
                 <br><br>
-                <input type="text" id="height-first" name="height-first" placeholder="First panel height">
+                <input type="text" id="height-first" name="height-first" placeholder="First panel height, current={{ defaults['height-first'] }}">
                 <br><br>
-                <input type="text" id="height-second" name="height-second" placeholder="Second panel height">
+                <input type="text" id="height-second" name="height-second" placeholder="Second panel height, current={{ defaults['height-second'] }}">
                 <br><br>
-                <input type="text" id="axis-distance" name="axis-distance" placeholder="Panel axis distance">
+                <input type="text" id="axis-distance" name="axis-distance" placeholder="Panel axis distance, current={{ defaults['axis-distance'] }}">
                 <br><br>
-                <input type="text" id="panel-length" name="panel-length" placeholder="Panel length">
+                <input type="text" id="panel-length" name="panel-length" placeholder="Panel length, current={{ defaults['panel-length'] }}">
                 <br><br>
-                <input type="text" id="home-position" name="home-position" placeholder="Home position (degrees)">
+                <input type="text" id="home-position" name="home-position" placeholder="Home position (degrees), current={{ defaults['home-position'] }}">
                 <br><br>
-                <input type="text" id="motor-rpd" name="motor-rpd" placeholder="Revolutions per degree">
+                <input type="text" id="motor-rpd" name="motor-rpd" placeholder="Revolutions per degree, current={{ defaults['motor-rpd'] }}">
                 <button name="submit-defaults" id="submit-defaults" class="submit-button">Submit</button>
             </div>
         </form>

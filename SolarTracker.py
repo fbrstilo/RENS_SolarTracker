@@ -57,7 +57,7 @@ def admin():
         if(not validate_login(request)):
             return redirect('/login')
         else:
-            return render_template('admin.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, request_timeout=int(defaults['delta-time']), logged_in=True)
+            return render_template('admin.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, defaults=defaults, keys=tr.keys, logged_in=True)
     else:
         if "submit-defaults" in request.form or "submit-delta-time" in request.form:
             update_json_from_request(request=request, file_path=f"{tr.JSONS_PATH}defaults.json")
@@ -122,23 +122,28 @@ def device_on_select():
                                        log_selected=f"{tr.LOGS_PATH}{id}/{log_selected}",
                                        csv_allow = True)
         if(logged_in):
-            return render_template('devctrl_logged_in.html',
-                                    alarms_and_errors=tr.alarms_and_errors,
-                                    device_logs = device_logs,
-                                    device_number=device_number,
-                                    devices=devices.items(),
-                                    logs=logs,
-                                    wait=wait,
-                                    logged_in=True)
+            template = 'devctrl_logged_in.html'
+            logged_in = True
         else:
-            return render_template('devctrl.html',
-                                   alarms_and_errors=tr.alarms_and_errors,
-                                   device_logs = device_logs,
-                                   device_number=device_number,
-                                   devices=devices.items(),
-                                   logs=logs,
-                                   wait=wait,
-                                   logged_in=False)
+            template = 'devctrl.html'
+            logged_in = False
+        device_config_path = tr.JSONS_PATH + id + '.json'
+        if os.path.exists(device_config_path):
+            with open(device_config_path) as f:
+                device_config = json.load(f)
+        else:
+            with open(tr.JSONS_PATH + 'device_on_register.json') as f:
+                device_config = json.load(f)
+        return render_template(template,
+                               alarms_and_errors=tr.alarms_and_errors,
+                               device_logs = device_logs,
+                               device_number=device_number,
+                               devices=devices.items(),
+                               logs=logs,
+                               wait=wait,
+                               logged_in=logged_in,
+                               device_config = device_config)
+        
     else:
         downlink_data=bytearray()
         if 'submit-elevation' in request.form:  
@@ -175,12 +180,15 @@ def device_on_select():
                 return redirect(f'/device?id=device{device_number}')
         
         if(validate_login(request)):
+            device_config_path = tr.JSONS_PATH + id + '.json'
             if 'params' in request.form:
                 downlink_data = handle_params(request)
                 tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), PARAMETER_SETTINGS_PORT)
+                update_json_from_request(file_path=device_config_path, request=request)
                 wait = int(defaults['delta-time'])
             elif 'submit-defaults' in request.form:
                 wait = 7*int(defaults['delta-time'])
+                shutil.copyfile(src=tr.JSONS_PATH + 'defaults.json', dst=device_config_path)
                 submit_defaults_thread = threading.Thread(target=submit_all_defaults, args=(device_number,))
                 submit_defaults_thread.start()
             elif 'submit-delete-device' in request.form:
@@ -189,11 +197,12 @@ def device_on_select():
                         data = json.load(f)
                     del data[device_eui_from_number(device_number)]
                     update_json(data, f'{tr.JSONS_PATH}device_mappings.json')
-                    # Also delete all device logs
-                    path = tr.LOGS_PATH + id
-                    print(path)
-                    if os.path.exists(path) and os.path.isdir(path):
-                        shutil.rmtree(path)
+                    # Also delete all device logs and device configuration
+                    device_logs = tr.LOGS_PATH + id
+                    if os.path.exists(device_logs) and os.path.isdir(device_logs):
+                        shutil.rmtree(device_logs)
+                    if os.path.exists(device_config_path):
+                        os.remove(device_config_path)
                     return redirect('/')
         
         timeout_enable = True
@@ -366,7 +375,7 @@ def submit_all_defaults(device_number):
     downlink_data=bytearray()
     downlink_data.append(0)
     downlink_data.append(int(defaults["siren-on-time"]))
-    downlink_data.append(int(defaults["insolation"]))
+    downlink_data.append(int(defaults["insolation-percentage"]))
     downlink_data.extend([0x00] * 6)  # Append 7 more bytes of 0x00 to complete the message
     tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
     time.sleep(int(defaults['delta-time']))
