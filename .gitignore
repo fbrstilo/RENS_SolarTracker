@@ -2,5 +2,6 @@ venv/
 __pycache__/
 alarms/*
 logs/*
-jsons/device_mappings.json
-jsons/keys.json
+jsons/*
+!jsons/defaults.json
+!jsons/device_on_register.json
