@@ -26,22 +26,21 @@
 	    <h3>Angle/Panel Tilt control:</h3>
 		<p><b>MAKE SURE TO SWITCH BACK TO AUTO WHEN MANUAL CONTROL IS NO LONGER NEEDED</b>
 		<br><b>Automatic control:</b> set the toggle to the 'Auto' position and press the 'Send data' button
-		<br><b>Manual control:</b> set the toggle to the 'Manual' position, write the wanted angle in the text input area, and press the 'Send data' button.
+		<br><b>Manual control:</b> set the toggle to the 'Manual' position, input the wanted angle in the text box, and press the 'Send data' button.
 		<br>The device will never move past the east/west limits</p>
 
-	    <h3>Request log:</h3>
-		<p>Create a new .log file, viewable in the 'Logs' section
-		<br>To request the device's last log, switch the toggle to the 'Last' position and press the 'Request log' button
-		<br>To request all available logs, switch the toggle to the 'All' position and press the 'Request log' button. This action takes 8x longer than requesting a single log</p>
+	    <h3>Position history:</h3>
+		<p>Last – Requests the current position of the device and appends it to a log
+		<br>All – Requests all historical position data on the device and appends it to a log</p>
 
 	    <h3>Reset:</h3>
-		<p>Reboot the device. After reboot the device will sound off the alarm and move to its home position, before resuming automatic control</p>
+		<p>Remotely reboot the end device. Attempting to control the device while it is not fully booted will result in an error</p>
 
         <h3>Controls available to the Admin:</h3>
 	    <h3>To revert values to their default, submit the data with empty input fields.</h3>
 
 	    <h3>Siren and insolation:</h3>
-		<br>Siren on time - system boot warning duration in seconds.
+		<br>Siren on time - After a reboot, the device will sound an alarm for this many seconds before moving to its home position
 		<br>Insolation - max area of next solar panel that the controlled solar panel is allowed to 'hide' from the Sun. Expressed as a percentage:
 			<br>&emsp;0% - next panel is fully hidden from the Sun
 			<br>&emsp;100% - next panel is fully exposed to the Sun
@@ -66,10 +65,16 @@
         <p>Home position - the first position to which the device goes to after booting up
         <br>Motor RPD - ratio between motor revolutions and solar panel angle change</p>
 
+		<h3>Reset to defaults:</h3>
+		<p>Reset all device parameters to their default values (defined in the Admin control panel)</p>
+
+		<h3>Delete device</h3>
+		<p>Unregister a device from the SolarTracker</p>
+
     </div>
     <div class="box">
         <h3>LOGS</h3>
-        <p>All system logs will appear in this menu. Log viewing is available to all users.
+        <p>Logs which are not device-speciffic and not alarms/errors will appear in this section. Log viewing is available to all users.
 		<br>All logs can be downloaded as a .txt file, and device-speciffic logs can be downloaded as .csv files, for easier exporting of data to other programs.
 		</p>
     </div>

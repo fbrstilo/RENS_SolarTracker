@@ -26,9 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
         devicesButton.nextElementSibling.style.display = 'block';
     }
     else if(window.location.pathname.startsWith('/logs')){
-        let logsButton = document.getElementById('collapsible-logs');
+        let logsButton = document.getElementById('logs');
         logsButton.classList.add('active');
-        logsButton.nextElementSibling.style.display = 'block';
     }
     else if(window.location.pathname.startsWith('/admin')){
         let adminButton = document.getElementById('admin');
@@ -48,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedButtonID = params.get('id');
     if(selectedButtonID != null){
         let selectedButton = document.getElementById(selectedButtonID)
-        selectedButton.classList.add('active')
+        if(selectedButton != null) selectedButton.classList.add('active')
     }
 
     const sidebarCollapsibles = document.querySelector(".sidebar").querySelectorAll('.collapsible');

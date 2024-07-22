@@ -125,9 +125,11 @@ def send_downlink(dev_eui, data, port):
     req.queue_item.data = data
     req.queue_item.dev_eui = dev_eui
     req.queue_item.f_port = port
-    
+
     resp = client.Enqueue(req, metadata=auth_token) # response s kojim trenutno nista ne radimo
-    print("Downlink message sent to", dev_eui)
+    log_filename = 'EventLogger.log'
+    log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Downlink message sent to Device {device_eui_map[dev_eui]} (dev_eui: {dev_eui})\nmessage: {req}"
+    write_to_log(log_message, LOGS_PATH + log_filename, alarm=False)
 
 # Convert float to bytes
 def float_to_bytes(float_value):
@@ -178,7 +180,7 @@ def delete_logs(days):
         if(((datetime.now().timestamp() - timeModified)/SECONDS_IN_DAY) > days):
             try:
                 os.remove(LOGS_PATH + log)
-            except Exception as e: # deleting of open files will always fail
+            except Exception as e: # deleting of open files will always fail (e.g. EventLogger.log)
                 open(LOGS_PATH + log, 'w').close() # delete content instead
                 print(e)
 
@@ -204,10 +206,8 @@ def on_message(client, userdata, msg):
     try:
         payload = json.loads(msg.payload.decode("utf-8"))
         base64_data = payload.get("data")
-        print(base64_data)
         # Decode the port number from the first byte
         port_number = payload.get("fPort")
-        print(port_number)
         dev_eui = payload["deviceInfo"]["devEui"]
 
         # Get device number from device_eui_map
@@ -220,16 +220,16 @@ def on_message(client, userdata, msg):
             save_device_mappings(device_eui_map)
         
         if not base64_data: # device rebooted
-            log_filename = "Alarm_Error.log"
-            log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Device {device_number} (eui:{dev_eui}) has just been rebooted.\n"
-            write_to_log(log_message=log_message, log_path=ALARMS_PATH + log_filename, alarm=True)
+            log_filename = "EventLogger.log"
+            log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Alert: Device {device_number} (eui:{dev_eui}) has just been rebooted.\n"
+            write_to_log(log_message=log_message, log_path=LOGS_PATH + log_filename, alarm=False)
             return
 
         decoded_data = base64.b64decode(base64_data)
         # Ensure there's at least one byte for the port number
         if len(decoded_data) < 1:
             log_filename = "Alarm_Error.log"
-            log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Device {device_number} (eui:{dev_eui}) error: recieved data is too short: {decoded_data}\n"
+            log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Error: Device {device_number} (eui:{dev_eui}) error: recieved data is too short: {decoded_data}\n"
             write_to_log(log_message=log_message, log_path=ALARMS_PATH + log_filename, alarm=True)
             return
         
@@ -364,7 +364,7 @@ client.connect(broker_address)
 device_eui_map = load_or_create_device_mappings()
 
 # delete old logs enery day at midnight
-old_logs_thread = threading.Thread(target=delete_logs_threaded, args=[30,])
+old_logs_thread = threading.Thread(target=delete_logs_threaded, args=[30,]) 
 old_logs_thread.daemon = True # task is an infinite loop, set as daemon so it exits together with main thread
 old_logs_thread.start()
 
@@ -374,9 +374,9 @@ old_logs_thread.start()
 #log_request_thread.start()
 
 # Testing of the alarm and error page
-#write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Error: decoding JSON:\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
-#write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, L6470 Status Reg (Hex): status_reg:#06x, (Decimal): status_reg, Error: error_text\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
-#write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Device device_number (eui:dev_eui) has just been rebooted.\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
+write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Error: decoding JSON:\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
+write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, L6470 Status Reg (Hex): status_reg:#06x, (Decimal): status_reg, Error: error_text\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
+write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Device device_number (eui:dev_eui) has just been rebooted.\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
 
 # Start MQTT client loop
 client.loop_start()

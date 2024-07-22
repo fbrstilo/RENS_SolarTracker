@@ -65,16 +65,11 @@
                 </a>
                 {% endfor %}
             </div>
-            <button class="collapsible" id="collapsible-logs">Logs</button>
-            <div class="content">
-                {% for log in logs %}
-                <a href="/logs?id={{log}}">
-                    <div id="{{log}}" class="button">
-                        {{log}}
-                    </div>
-                </a>
-                {% endfor %}
-            </div>
+            <a href="/logs?id=EventLogger.log">
+                <div id="logs" class="button">
+                    System logs
+                </div>
+            </a>
         </div>
 
         {% block body %}{% endblock %}
