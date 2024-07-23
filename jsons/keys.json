@@ -1,1 +1,1 @@
-{"mqtt-broker-address": "localhost", "chirpstack-server-address": "localhost:8080"}
+{"mqtt-app-id": "", "chirpstack-api-key": "", "mqtt-broker-address": "localhost", "chirpstack-server-address": "localhost:8080"}
