@@ -214,6 +214,15 @@ def on_message(client, userdata, msg):
         # Get device number from device_eui_map
         device_number = device_eui_map.get(dev_eui)
 
+        # Update device's last seen timestamp
+        device_config_path = f"{JSONS_PATH}device{device_number}.json"
+        if os.path.exists(device_config_path):
+            with open(device_config_path, 'r') as f:
+                device_config = json.load(f)
+            device_config['last-seen'] = datetime.now().timestamp()
+            with open(device_config_path, "w") as f:
+                json.dump(device_config, f)
+
         if device_number is None:
             # Device mapping doesn't exist, create one and save
             device_number = len(device_eui_map) + 1
@@ -287,6 +296,8 @@ def on_message(client, userdata, msg):
                 try:
                     ieee_float = struct.unpack('>f', ieee_bytes)[0]
                     log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\t\t\t\t\t{ieee_float:.2f}\n"
+                    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\t{ieee_float:.2f}")
+                    return
                 except struct.error as e:
                     print("Error decoding float:", e)
         elif port_number == 63:

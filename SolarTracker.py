@@ -188,7 +188,6 @@ def device_on_select():
                 wait = int(defaults['delta-time'])
             elif 'submit-defaults' in request.form:
                 wait = 7*int(defaults['delta-time'])
-                shutil.copyfile(src=tr.JSONS_PATH + 'defaults.json', dst=device_config_path)
                 submit_defaults_thread = threading.Thread(target=submit_all_defaults, args=(device_number,))
                 submit_defaults_thread.start()
             elif 'submit-delete-device' in request.form:
@@ -370,6 +369,30 @@ def handle_params(request):
 # this takes a long time so should be ran in a separate thread
 def submit_all_defaults(device_number):
     device_eui = device_eui_from_number(device_number)
+    device_config_path = f"{tr.JSONS_PATH}device{device_number}.json"
+    if os.path.exists(device_config_path):
+        with open(device_config_path) as f:
+            device_config = json.load(f)
+    else:
+        with open(tr.JSONS_PATH + 'device_on_register.json') as f:
+            device_config = json.load(f)
+    
+    # revert device config to default values, all except last-seen
+    device_config["siren-on-time"] = defaults["siren-on-time"]
+    device_config["insolation-percentage"] = defaults["insolation-percentage"]
+    device_config["latitude"] = defaults["latitude"]
+    device_config["longitude"] = defaults["longitude"]
+    device_config["time-offset"] = defaults["time-offset"]
+    device_config["limit-east"] = defaults["limit-east"]
+    device_config["limit-west"] = defaults["limit-west"]
+    device_config["height-first"] = defaults["height-first"]
+    device_config["height-second"] = defaults["height-second"]
+    device_config["axis-distance"] = defaults["axis-distance"]
+    device_config["panel-length"] = defaults["panel-length"]
+    device_config["home-position"] = defaults["home-position"]
+    device_config["motor-rpd"] = defaults["motor-rpd"]
+    device_config["last-seen"] = defaults["last-seen"]
+    update_json(device_config, device_config_path)
 
     # siren on time and insolation
     downlink_data=bytearray()
