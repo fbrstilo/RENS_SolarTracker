@@ -143,8 +143,7 @@ def device_on_select():
                                logs=logs,
                                wait=wait,
                                logged_in=logged_in,
-                               device_config = device_config,
-                               now=datetime.now().timestamp())
+                               device_config = device_config)
         
     else:
         downlink_data=bytearray()

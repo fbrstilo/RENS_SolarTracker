@@ -12,5 +12,6 @@
     "panel-length": "0",
     "home-position": "0",
     "motor-rpd": "0",
-    "last-seen": "0"
+    "last-seen": "0",
+    "state": "connected"
 }

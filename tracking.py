@@ -157,19 +157,31 @@ def request_last_log():
             send_downlink(dev_eui, bytes([0]), 4)  # Assuming port 4, log retrieval option 0 for last log
         time.sleep(request_current_pos)  # Wait for 1 minute
 
+# Check device connections and update their states
+# Raise alarm for any newly disconnected device and write log for any reconnected device
 def check_disconnected():
     print('checking disconnected')
     disconnected = []
-    # print("Checking disconnected...")
     for dev_num in device_eui_map.values():
         device_config_path = f"{JSONS_PATH}device{dev_num}.json"
         if os.path.exists(device_config_path):
             with open(device_config_path, 'r') as f:
                 device_config = json.load(f)
             last_seen = device_config['last-seen']
-            if datetime.now().timestamp() - last_seen > 10*60: # if device was last seen more than 10 miutes ago
+            flag_modified = False # only edit the config if it was changed
+            if device_config['state'] == 'connected' and datetime.now().timestamp() - last_seen > 10*60: # if device was last seen more than 10m ago
+                device_config['state'] = 'disconnected'
+                flag_modified = True
                 disconnected.append(dev_num)
-    # print(f"Disconnected devices: {disconnected}")
+            elif device_config['state'] == 'disconnected' and datetime.now().timestamp() - last_seen < 10*60: # if device regained connection within the last 10 minutes
+                flag_modified = True
+                device_config['state'] = 'connected'
+                log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Device {dev_num} regained connection. Last seen: {datetime.fromtimestamp(last_seen).strftime('%Y-%m-%d %H:%M:%S')}\n"
+                write_to_log(log_message=log_message, log_path=LOGS_PATH + 'EventLogger.log', alarm=False)
+            # update device config file to reflect changes
+            if flag_modified:
+                with open(device_config_path, 'w') as f:
+                    json.dump(device_config, f)      
     if disconnected != []:
         alarm_disconnected(disconnected)
 
@@ -402,7 +414,7 @@ def scheduled_tasks():
 
 # Thread for running background tasks
 schedule.every().day.at('00:00').do(delete_logs, 30) # every day at midnight delete logs older than 30 days
-schedule.every(5).minutes.do(check_disconnected) # every 5 minutes check device connections
+schedule.every(1).minutes.do(check_disconnected) # every 5 minutes check device connections
 scheduled_tasks_thread = threading.Thread(target=scheduled_tasks) 
 scheduled_tasks_thread.daemon = True # task is an infinite loop, set as daemon so it exits together with main thread
 scheduled_tasks_thread.start()
@@ -411,11 +423,6 @@ scheduled_tasks_thread.start()
 # UNCOMMENT TWO LINES BELOW IF YOU WANT TO RECEIVE CURRENT LOG EVERY X MINUTES
 #log_request_thread = threading.Thread(target=request_last_log)
 #log_request_thread.start()
-
-# Testing of the alarm and error page
-#write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Error: decoding JSON:\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
-#write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, L6470 Status Reg (Hex): status_reg:#06x, (Decimal): status_reg, Error: error_text\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
-#write_to_log(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Device device_number (eui:dev_eui) has just been rebooted.\n", ALARMS_PATH + 'Alarm_Error.log', alarm=True)
 
 # Start MQTT client loop
 client.loop_start()

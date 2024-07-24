@@ -13,7 +13,7 @@
         <p>Control will be re-enabled in <span id="timer"></span> seconds.</p>
         <input type="hidden" id="wait-time" value="{{wait}}">
     </div>
-    {% if((now - device_config['last-seen']) > 10*60) %}
+    {% if(device_config['connected'] != 'connected') %}
     <div class="box" style="background-color: #ff4545;">
         <h2>Device {{ device_number }} <b>DISCONNECTED</b></h2>
     {% else %}
