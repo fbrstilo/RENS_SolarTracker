@@ -1,6 +1,7 @@
 from flask import Flask, render_template, redirect, request, make_response, send_file
 import json
 import os
+from datetime import datetime
 import shutil
 import tracking as tr
 import time
@@ -142,7 +143,8 @@ def device_on_select():
                                logs=logs,
                                wait=wait,
                                logged_in=logged_in,
-                               device_config = device_config)
+                               device_config = device_config,
+                               now=datetime.now().timestamp())
         
     else:
         downlink_data=bytearray()
@@ -544,6 +546,11 @@ def validate_login(request):
             return True
     else:
         return False
+
+@app.template_filter('ctime')
+def timectime(s):
+    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
 
 load_logs()
 load_defaults()

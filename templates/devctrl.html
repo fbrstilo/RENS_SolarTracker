@@ -13,6 +13,15 @@
         <p>Control will be re-enabled in <span id="timer"></span> seconds.</p>
         <input type="hidden" id="wait-time" value="{{wait}}">
     </div>
+    {% if((now - device_config['last-seen']) > 10*60) %}
+    <div class="box" style="background-color: #ff4545;">
+        <h2>Device {{ device_number }} <b>DISCONNECTED</b></h2>
+    {% else %}
+    <div class="box">
+        <h2>Device {{ device_number }}</h2>
+    {% endif %}
+        <p>Last seen: {{ device_config['last-seen'] | ctime }}</p>
+    </div>
     <div class="box">
         <form action="" method="POST" id="elevation-control">
             <h2>Angle/Panel Tilt control</h2>

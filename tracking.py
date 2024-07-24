@@ -157,6 +157,32 @@ def request_last_log():
             send_downlink(dev_eui, bytes([0]), 4)  # Assuming port 4, log retrieval option 0 for last log
         time.sleep(request_current_pos)  # Wait for 1 minute
 
+def check_disconnected():
+    print('checking disconnected')
+    disconnected = []
+    # print("Checking disconnected...")
+    for dev_num in device_eui_map.values():
+        device_config_path = f"{JSONS_PATH}device{dev_num}.json"
+        if os.path.exists(device_config_path):
+            with open(device_config_path, 'r') as f:
+                device_config = json.load(f)
+            last_seen = device_config['last-seen']
+            if datetime.now().timestamp() - last_seen > 10*60: # if device was last seen more than 10 miutes ago
+                disconnected.append(dev_num)
+    # print(f"Disconnected devices: {disconnected}")
+    if disconnected != []:
+        alarm_disconnected(disconnected)
+
+def alarm_disconnected(dev_numbers):
+    for i in dev_numbers:
+        device_config_path = f"{JSONS_PATH}device{i}.json"
+        if os.path.exists(device_config_path):
+            with open(device_config_path, 'r') as f:
+                device_config = json.load(f)
+            last_seen = device_config['last-seen']
+        log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Alarm: Device {i} DISCONNECTED! Last seen: {datetime.fromtimestamp(last_seen).strftime('%Y-%m-%d %H:%M:%S')}\n"
+        write_to_log(log_message=log_message, log_path=ALARMS_PATH + 'Alarm_Error.log', alarm=True)
+
 # MQTT callback functions
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -173,11 +199,10 @@ def write_to_log(log_message, log_path, alarm = False):
         log_file.write(log_message)
 
 def delete_logs(days):
+    print('deleting')
     logs = find_files_with_extension(root_folder=LOGS_PATH, extension='.log') # put all .log files in one container
-    print(logs)
     for log in logs:
         timeModified = os.path.getmtime(LOGS_PATH + log)
-        print(f"Log: {log} Modified: {timeModified}")
         if(((datetime.now().timestamp() - timeModified)/SECONDS_IN_DAY) > days):
             try:
                 os.remove(LOGS_PATH + log)
@@ -193,12 +218,6 @@ def find_files_with_extension(root_folder, extension):
                 relative_path = os.path.relpath(os.path.join(root, file), root_folder)
                 file_paths.append(relative_path)
     return file_paths
-
-def delete_logs_threaded(days):
-    schedule.every().day.at('00:00').do(delete_logs, days) # every day at midnight delete logs older than 30 days
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
 
 def on_message(client, userdata, msg):
     global downlink_sent, downlink_port_to_confirm, downlink_data_to_confirm
@@ -376,10 +395,17 @@ client.connect(broker_address)
 # Load or create device mappings
 device_eui_map = load_or_create_device_mappings()
 
-# delete old logs enery day at midnight
-old_logs_thread = threading.Thread(target=delete_logs_threaded, args=[30,]) 
-old_logs_thread.daemon = True # task is an infinite loop, set as daemon so it exits together with main thread
-old_logs_thread.start()
+def scheduled_tasks():
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+# Thread for running background tasks
+schedule.every().day.at('00:00').do(delete_logs, 30) # every day at midnight delete logs older than 30 days
+schedule.every(5).minutes.do(check_disconnected) # every 5 minutes check device connections
+scheduled_tasks_thread = threading.Thread(target=scheduled_tasks) 
+scheduled_tasks_thread.daemon = True # task is an infinite loop, set as daemon so it exits together with main thread
+scheduled_tasks_thread.start()
 
 # Start the scheduled task for requesting the last log every X minute
 # UNCOMMENT TWO LINES BELOW IF YOU WANT TO RECEIVE CURRENT LOG EVERY X MINUTES
