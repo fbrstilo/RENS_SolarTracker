@@ -128,9 +128,8 @@ def send_downlink(dev_eui, data, port):
     req.queue_item.f_port = port
 
     resp = client.Enqueue(req, metadata=auth_token) # response s kojim trenutno nista ne radimo
-    log_filename = 'EventLogger.log'
-    log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Downlink message sent to Device {device_eui_map[dev_eui]} (dev_eui: {dev_eui} port: {port} data: {data})\n"
-    write_to_log(log_message, LOGS_PATH + log_filename, alarm=False)
+    log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Downlink message sent to Device {device_eui_map[dev_eui]} (eui: {dev_eui} port: {port} data: {data})"
+    print(log_message)
 
 # Convert float to bytes
 def float_to_bytes(float_value):
@@ -150,23 +149,28 @@ def save_device_mappings(device_mappings):
     with open(f"{JSONS_PATH}device_mappings.json", "w") as f:
         json.dump(device_mappings, f)
 
-# Function to request last log every 1 minute
-def request_last_log():
-    while True:
-        for dev_eui in device_eui_map.keys():
-            send_downlink(dev_eui, bytes([0]), 4)  # Assuming port 4, log retrieval option 0 for last log
-        time.sleep(request_current_pos)  # Wait for 1 minute
+def load_device_config(device_id):
+    device_config_path = f"{JSONS_PATH}device{device_id}.json"
+    if os.path.exists(device_config_path):
+            with open(device_config_path, 'r') as f:
+                return json.load(f)
+    else: return None
+
+def store_device_config(device_id, device_config):
+    device_config_path = f"{JSONS_PATH}device{device_id}.json"
+    if os.path.exists(device_config_path):
+        with open(device_config_path, 'w') as f:
+            json.dump(device_config, f)
+        return 0
+    else: return -1
 
 # Check device connections and update their states
 # Raise alarm for any newly disconnected device and write log for any reconnected device
 def check_disconnected():
-    print('checking disconnected')
     disconnected = []
     for dev_num in device_eui_map.values():
-        device_config_path = f"{JSONS_PATH}device{dev_num}.json"
-        if os.path.exists(device_config_path):
-            with open(device_config_path, 'r') as f:
-                device_config = json.load(f)
+        device_config = load_device_config(device_id=dev_num)
+        if device_config != None:
             last_seen = device_config['last-seen']
             flag_modified = False # only edit the config if it was changed
             if device_config['state'] == 'connected' and datetime.now().timestamp() - last_seen > 10*60: # if device was last seen more than 10m ago
@@ -180,20 +184,17 @@ def check_disconnected():
                 write_to_log(log_message=log_message, log_path=LOGS_PATH + 'EventLogger.log', alarm=False)
             # update device config file to reflect changes
             if flag_modified:
-                with open(device_config_path, 'w') as f:
-                    json.dump(device_config, f)      
+                store_device_config(device_id=dev_num, device_config=device_config)
     if disconnected != []:
         alarm_disconnected(disconnected)
 
 def alarm_disconnected(dev_numbers):
     for i in dev_numbers:
-        device_config_path = f"{JSONS_PATH}device{i}.json"
-        if os.path.exists(device_config_path):
-            with open(device_config_path, 'r') as f:
-                device_config = json.load(f)
+        device_config = load_device_config(i)
+        if(device_config != None):
             last_seen = device_config['last-seen']
-        log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Alarm: Device {i} DISCONNECTED! Last seen: {datetime.fromtimestamp(last_seen).strftime('%Y-%m-%d %H:%M:%S')}\n"
-        write_to_log(log_message=log_message, log_path=ALARMS_PATH + 'Alarm_Error.log', alarm=True)
+            log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Alarm: Device {i} DISCONNECTED! Last seen: {datetime.fromtimestamp(last_seen).strftime('%Y-%m-%d %H:%M:%S')}\n"
+            write_to_log(log_message=log_message, log_path=ALARMS_PATH + 'Alarm_Error.log', alarm=True)
 
 # MQTT callback functions
 def on_connect(client, userdata, flags, rc):
@@ -211,7 +212,6 @@ def write_to_log(log_message, log_path, alarm = False):
         log_file.write(log_message)
 
 def delete_logs(days):
-    print('deleting')
     logs = find_files_with_extension(root_folder=LOGS_PATH, extension='.log') # put all .log files in one container
     for log in logs:
         timeModified = os.path.getmtime(LOGS_PATH + log)
@@ -251,6 +251,8 @@ def on_message(client, userdata, msg):
             with open(device_config_path, 'r') as f:
                 device_config = json.load(f)
             device_config['last-seen'] = datetime.now().timestamp()
+            if device_config['state'] == "disconnected":
+                device_config['state'] = "connected"
             with open(device_config_path, "w") as f:
                 json.dump(device_config, f)
 
@@ -300,12 +302,13 @@ def on_message(client, userdata, msg):
                 # Decode the last four bytes as a float
                 ieee_float = struct.unpack('>f', remaining_data)[0]
                 log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\t\t\t\t\t{ieee_float:.2f}\n"
+                device_config = load_device_config(device_id=device_number)
+                if(device_config['current-position'] != ieee_float):
+                    device_config['current-position'] = ieee_float
+                    store_device_config(device_id=device_number, device_config=device_config)
             else:
                 log_filename = LOGS_PATH + f"device{device_number}/" + f"{date_str}.log"
                 with open(log_filename, 'a') as log_file:
-                    # Add column descriptors - removed for easier parsing to .csv
-                    #if log_file.tell() == 0:
-                    #   log_file.write("Timestamp\t\t\t\t\t\tPanel tilt\n")
                     # Write the logs
                     for i in range(0, len(remaining_data_log), 8):
                         timestamp_bytes = remaining_data_log[i:i+4]
@@ -328,6 +331,10 @@ def on_message(client, userdata, msg):
                     ieee_float = struct.unpack('>f', ieee_bytes)[0]
                     log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\t\t\t\t\t{ieee_float:.2f}\n"
                     print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\t{ieee_float:.2f}")
+                    device_config = load_device_config(device_id=device_number)
+                    if(device_config['current-position'] != ieee_float):
+                        device_config['current-position'] = ieee_float
+                        store_device_config(device_id=device_number, device_config=device_config)
                     return
                 except struct.error as e:
                     print("Error decoding float:", e)

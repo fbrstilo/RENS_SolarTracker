@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, make_response, send_file
+from flask import Flask, render_template, redirect, request, make_response, send_file, jsonify
 import json
 import os
 from datetime import datetime
@@ -129,12 +129,7 @@ def device_on_select():
             template = 'devctrl.html'
             logged_in = False
         device_config_path = tr.JSONS_PATH + id + '.json'
-        if os.path.exists(device_config_path):
-            with open(device_config_path) as f:
-                device_config = json.load(f)
-        else:
-            with open(tr.JSONS_PATH + 'device_on_register.json') as f:
-                device_config = json.load(f)
+        device_config = tr.load_device_config(device_id=device_number)
         return render_template(template,
                                alarms_and_errors=tr.alarms_and_errors,
                                device_logs = device_logs,
@@ -371,12 +366,7 @@ def handle_params(request):
 def submit_all_defaults(device_number):
     device_eui = device_eui_from_number(device_number)
     device_config_path = f"{tr.JSONS_PATH}device{device_number}.json"
-    if os.path.exists(device_config_path):
-        with open(device_config_path) as f:
-            device_config = json.load(f)
-    else:
-        with open(tr.JSONS_PATH + 'device_on_register.json') as f:
-            device_config = json.load(f)
+    device_config = tr.load_device_config(device_id=device_number)
     
     # revert device config to default values, all except last-seen
     device_config["siren-on-time"] = defaults["siren-on-time"]
@@ -548,7 +538,7 @@ def validate_login(request):
 
 @app.template_filter('ctime')
 def timectime(s):
-    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    return datetime.fromtimestamp(s).strftime('%Y-%m-%d %H:%M:%S')
 
 
 load_logs()
