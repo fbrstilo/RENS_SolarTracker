@@ -1,1 +1,16 @@
-{"siren-on-time": "5", "insolation-percentage": "100", "latitude": "43", "longitude": "16", "time-offset": "3600", "limit-east": "-40", "limit-west": "40", "height-first": "5", "height-second": "5", "axis-distance": "18", "panel-length": "5", "home-position": "-40", "motor-rpd": "5", "delta-time": "15"}
+{
+    "siren-on-time": "5",
+    "insolation-percentage": "100",
+    "latitude": "43",
+    "longitude": "16",
+    "time-offset": "3600",
+    "limit-east": "-40",
+    "limit-west": "40",
+    "height-first": "5",
+    "height-second": "5",
+    "axis-distance": "18",
+    "panel-length": "5",
+    "home-position": "-40",
+    "motor-rpd": "5",
+    "delta-time": "15"
+}

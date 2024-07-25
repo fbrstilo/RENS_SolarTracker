@@ -382,7 +382,6 @@ def submit_all_defaults(device_number):
     device_config["panel-length"] = defaults["panel-length"]
     device_config["home-position"] = defaults["home-position"]
     device_config["motor-rpd"] = defaults["motor-rpd"]
-    device_config["last-seen"] = defaults["last-seen"]
     update_json(device_config, device_config_path)
 
     # siren on time and insolation

@@ -253,6 +253,8 @@ def on_message(client, userdata, msg):
             device_config['last-seen'] = datetime.now().timestamp()
             if device_config['state'] == "disconnected":
                 device_config['state'] = "connected"
+                log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Device {device_number} regained connection. Last seen: {datetime.fromtimestamp(device_config['last-seen']).strftime('%Y-%m-%d %H:%M:%S')}\n"
+                write_to_log(log_message=log_message, log_path=LOGS_PATH + 'EventLogger.log', alarm=False)
             with open(device_config_path, "w") as f:
                 json.dump(device_config, f)
 
