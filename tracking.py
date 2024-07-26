@@ -332,7 +332,7 @@ def on_message(client, userdata, msg):
                 try:
                     ieee_float = struct.unpack('>f', ieee_bytes)[0]
                     log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\t\t\t\t\t{ieee_float:.2f}\n"
-                    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\t{ieee_float:.2f}")
+                    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\tDevice {device_number}\t{ieee_float:.2f}")
                     device_config = load_device_config(device_id=device_number)
                     if(device_config['current-position'] != ieee_float):
                         device_config['current-position'] = ieee_float
@@ -427,11 +427,6 @@ schedule.every(1).minutes.do(check_disconnected) # every 5 minutes check device 
 scheduled_tasks_thread = threading.Thread(target=scheduled_tasks) 
 scheduled_tasks_thread.daemon = True # task is an infinite loop, set as daemon so it exits together with main thread
 scheduled_tasks_thread.start()
-
-# Start the scheduled task for requesting the last log every X minute
-# UNCOMMENT TWO LINES BELOW IF YOU WANT TO RECEIVE CURRENT LOG EVERY X MINUTES
-#log_request_thread = threading.Thread(target=request_last_log)
-#log_request_thread.start()
 
 # Start MQTT client loop
 client.loop_start()

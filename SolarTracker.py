@@ -1,4 +1,5 @@
 from flask import Flask, render_template, redirect, request, make_response, send_file, jsonify
+import sys
 import json
 import os
 from datetime import datetime
@@ -138,7 +139,8 @@ def device_on_select():
                                logs=logs,
                                wait=wait,
                                logged_in=logged_in,
-                               device_config = device_config)
+                               device_config = device_config,
+                               defaults = defaults)
         
     else:
         downlink_data=bytearray()
@@ -244,16 +246,19 @@ def device_eui_from_number(device_number):
 
 def handle_params(request):
     downlink_data=bytearray()
+    id = request.args.get('id')
+    device_id = id.removeprefix('device')
+    device_config = tr.load_device_config(device_id=device_id)
     if 'submit-siren-and-insolation' in request.form:
         downlink_data.append(0)
         if('siren-on-time' in request.form and request.form['siren-on-time'] != ""):
             downlink_data.append(int(request.form['siren-on-time'].strip()))
         else:
-            downlink_data.append(int(defaults["siren-on-time"]))
+            downlink_data.append(int(device_config["siren-on-time"]))
         if(('insolation-percentage' in request.form) and request.form['insolation-percentage'] != ""):
             downlink_data.append(int(request.form['insolation-percentage'].strip()))
         else:
-            downlink_data.append(int(defaults["insolation"]))
+            downlink_data.append(int(device_config["insolation"]))
         downlink_data.extend([0x00] * 6)  # Append 7 more bytes of 0x00 to complete the message
 
     elif 'submit-position' in request.form:
@@ -261,11 +266,11 @@ def handle_params(request):
         if('latitude' in request.form and request.form['latitude'] != ""):
             latitude = float(request.form['latitude'].strip())
         else:
-            latitude = float(defaults["latitude"])
+            latitude = float(device_config["latitude"])
         if('longitude' in request.form and request.form['longitude'] != ""):
             longitude = float(request.form['longitude'].strip())
         else:
-            longitude = float(defaults["longitude"])
+            longitude = float(device_config["longitude"])
         
         # Convert latitude and longitude to hex and format the message
         lat_hex = struct.pack('>f', latitude).hex()
@@ -279,7 +284,7 @@ def handle_params(request):
         if('time-offset' in request.form and request.form['time-offset'] != ""):
             offset = int(request.form['time-offset'].strip())
         else:
-            offset = int(defaults["time-offset"])
+            offset = int(device_config["time-offset"])
         add_or_subtract = 1 if offset < 0 else 0
         offset = abs(offset)
 
@@ -293,12 +298,12 @@ def handle_params(request):
         if('limit-east' in request.form and request.form['limit-east'] != ""):
             e_limit = int(request.form['limit-east'].strip())
         else:
-            e_limit = int(defaults["limit-east"])
+            e_limit = int(device_config["limit-east"])
 
         if('limit-west' in request.form and request.form['limit-west'] != ""):
             w_limit = int(request.form['limit-west'].strip())
         else:
-            w_limit = int(defaults["limit-west"])
+            w_limit = int(device_config["limit-west"])
         
         # Convert east and west limits to hex and format the message
         e_limit_hex = struct.pack('>i', e_limit).hex()
@@ -311,11 +316,11 @@ def handle_params(request):
         if('height-first' in request.form and request.form['height-first'] != ""):
             h1 = float(request.form['height-first'].strip())
         else:
-            h1 = float(defaults["height-first"])
+            h1 = float(device_config["height-first"])
         if('height-second' in request.form and request.form['height-second'] != ""):
             h2 = float(request.form['height-second'].strip())
         else:
-            h2 = float(defaults["height-second"])
+            h2 = float(device_config["height-second"])
 
         # Convert panel heights to hex and format the message
         h1_hex = struct.pack('>f', h1).hex()
@@ -329,11 +334,11 @@ def handle_params(request):
         if('panel-length' in request.form and request.form['panel-length'] != ""):
             l = float(request.form['panel-length'].strip())
         else:
-            l = float(defaults['panel-length'])
+            l = float(device_config['panel-length'])
         if('panel-length' in request.form and request.form['panel-length'] != ""):
             dist = float(request.form['axis-distance'].strip())
         else:
-            dist = float(defaults['axis-distance'])
+            dist = float(device_config['axis-distance'])
         
         # Convert panel lenght and distance between them to hex and format the message
         l_hex = struct.pack('>f', l).hex()
@@ -346,11 +351,11 @@ def handle_params(request):
         if('motor-rpd' in request.form and request.form['motor-rpd'] != ""):
             motor_rpd = float(request.form['motor-rpd'].strip())
         else:
-            motor_rpd = float(defaults['motor-rpd'])
+            motor_rpd = float(device_config['motor-rpd'])
         if('home-position' in request.form and request.form['home-position'] != ""):
             home_pos = float(request.form['home-position'].strip())
         else:
-            home_pos = float(defaults['home-position'])
+            home_pos = float(device_config['home-position'])
 
         # Convert Rev per degree and home position to hex and format the message
         motor_rpd_hex = struct.pack('>f', motor_rpd).hex()
@@ -545,4 +550,7 @@ load_defaults()
 load_devices()
 
 if __name__ == '__main__':
-    serve(app, host='0.0.0.0', port=80)
+    if sys.argv.__contains__('--debug'):
+        app.run(host='0.0.0.0', port=80, debug=True) # flask development server
+    else:
+        serve(app, host='0.0.0.0', port=80) # in production serve using waitress
