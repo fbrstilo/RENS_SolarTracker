@@ -20,6 +20,7 @@ RESET_PORT = 65
 
 timeout_enable = False
 wait = 0
+statuses = {}
 
 app = Flask(__name__)
 
@@ -30,20 +31,18 @@ logging.getLogger('werkzeug').disabled = True
 @app.route('/')
 def index():
     global devices, logs
-    load_devices()
-    load_logs()
+    load_all()
     logged_in = True if validate_login(request) else False
-    return render_template('index.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logged_in=logged_in)
+    return render_template('index.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logged_in=logged_in, statuses=statuses)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    load_devices()
-    load_logs()
+    load_all()
     if(request.method == 'GET'):
         if(validate_login(request)):
             return redirect('/admin')
         else:
-            return render_template('login.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logged_in=False)
+            return render_template('login.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logged_in=False, statuses=statuses)
     else:
         token = request.form['password']
         resp = make_response(redirect('/login'))
@@ -53,13 +52,12 @@ def login():
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
     global defaults, wait, devices, logs
-    load_devices()
-    load_logs()
+    load_all()
     if request.method =='GET':
         if(not validate_login(request)):
             return redirect('/login')
         else:
-            return render_template('admin.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, defaults=defaults, keys=tr.keys, logged_in=True)
+            return render_template('admin.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, defaults=defaults, keys=tr.keys, logged_in=True, statuses=statuses)
     else:
         if "submit-defaults" in request.form or "submit-delta-time" in request.form:
             update_json_from_request(request=request, file_path=f"{tr.JSONS_PATH}defaults.json")
@@ -76,15 +74,16 @@ def admin():
     
 @app.route('/alarms-errors', methods=['GET', 'POST'])
 def alarms_errors():
+    load_all()
     filepath = tr.ALARMS_PATH + "Alarm_Error.log"
     if request.method =='GET':
         id = request.args.get('id')
         if(id == 'new-alarms-errors'):
-            return render_template('new_alarms_errors.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logged_in=validate_login(request))
+            return render_template('new_alarms_errors.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logged_in=validate_login(request), statuses=statuses)
         elif(id == 'alarms_and_errors_archive'):
             with open(filepath, 'r') as f:
                 data = f.read()
-                return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, data=data, logged_in=validate_login(request), log_selected=filepath)
+                return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, data=data, logged_in=validate_login(request), log_selected=filepath, statuses=statuses)
     else:
         if 'dismiss-all' in request.form:
             tr.alarms_and_errors.remove_all_errors()
@@ -98,8 +97,7 @@ def alarms_errors():
 @app.route('/device', methods=['GET', 'POST'])
 def device_on_select():
     global defaults, timeout_enable, wait, devices, logs
-    load_devices()
-    load_logs()
+    load_all()
     id = request.args.get('id')
     device_number = id.removeprefix('device')
     device_logs = []
@@ -122,7 +120,8 @@ def device_on_select():
                                        data=data,
                                        logged_in=logged_in,
                                        log_selected=f"{tr.LOGS_PATH}{id}/{log_selected}",
-                                       csv_allow = True)
+                                       csv_allow = True,
+                                       statuses=statuses)
         if(logged_in):
             template = 'devctrl_logged_in.html'
             logged_in = True
@@ -140,7 +139,8 @@ def device_on_select():
                                wait=wait,
                                logged_in=logged_in,
                                device_config = device_config,
-                               defaults = defaults)
+                               defaults = defaults,
+                               statuses=statuses)
         
     else:
         downlink_data=bytearray()
@@ -210,13 +210,12 @@ def log_on_select():
     global devices, logs
     filename = f"{request.args.get('id')}"
     if(request.method == 'GET'):
-        load_devices()
-        load_logs()
+        load_all()
         logged_in = True if validate_login(request) else False
         filepath = f"{tr.LOGS_PATH}{filename}"
         with open(filepath, 'r') as f:
             data = f.read()
-        return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logSelected=filepath, data=data, logged_in=logged_in)
+        return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logSelected=filepath, data=data, logged_in=logged_in, statuses=statuses)
     else:
         if('delete-log' in request.form):
             if(os.path.exists(f"{tr.LOGS_PATH}{filename}")):
@@ -495,6 +494,13 @@ def load_devices():
             with open(filepath, "r") as f:
                 devices = json.load(f)
 
+def load_device_statuses():
+    global devices, statuses 
+    for id in devices.values():
+        device_config = tr.load_device_config(device_id=id)
+        statuses[id] = device_config['state']
+    return statuses
+
 def load_defaults():
     global defaults
     filepath = f"{tr.JSONS_PATH}defaults.json"
@@ -544,10 +550,12 @@ def validate_login(request):
 def timectime(s):
     return datetime.fromtimestamp(s).strftime('%Y-%m-%d %H:%M:%S')
 
-
-load_logs()
+def load_all():
+    load_logs()
+    load_devices()
+    load_device_statuses()
+load_all()
 load_defaults()
-load_devices()
 
 if __name__ == '__main__':
     if sys.argv.__contains__('--debug'):

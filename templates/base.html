@@ -60,6 +60,12 @@
                 {% for device in devices %}
                 <a href="/device?id=device{{device[1]}}">
                     <div id="device{{device[1]}}" class="button">
+                        <span class="dot"
+                        {% if statuses[device[1]] == 'disconnected' %}
+                        style="background-color: #ff4545;"
+                        {% else %}
+                        style="background-color: #009440;"
+                        {% endif %}></span>
                         Device {{device[1]}}
                     </div>
                 </a>

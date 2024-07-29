@@ -86,6 +86,13 @@ header .button {
     margin-bottom: 10px;
 }
 
+.dot{
+    height: 10px;
+    width: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
 .main-content {
     flex-grow: 1;
     background-color: #fafcff;
