@@ -100,7 +100,7 @@ header .button {
     overflow-y: auto;
     position: relative;
 
-    background-image: url('../images/architecture-new.png');
+    background-image: url('../images/architecture-newer.png');
     background-size: contain;
     background-repeat: no-repeat;
     background-attachment: inherit;
@@ -275,15 +275,10 @@ table {
     width: 100%;
     max-width: 100%;
     white-space: nowrap;
-    background-color: white;
 }
 td, th {
     text-align: center;
     padding: 8px;
-}
-td {
-    border-right: 1px solid #f8f8f8;
-    height: 2em;
 }
 th {
     color: white;
@@ -294,8 +289,12 @@ th:nth-child(odd) {
     color: white;
     background: #4e5890;
 }
+tr {
+    height: 3em;
+    background: rgba(255, 255, 255, 0.3);
+}
 tr:nth-child(even) {
-    background: #f8f8f8;
+    background: rgba(220, 220, 220, 0.3);
 }
 .line {
     width: 40px;
@@ -303,9 +302,10 @@ tr:nth-child(even) {
     background-color: #4e5890;
     transform-origin: center;
     transition: transform 0.3s ease;
+
   }
 .angle-container {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-evenly;
 }
