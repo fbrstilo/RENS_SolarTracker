@@ -245,6 +245,16 @@ def on_message(client, userdata, msg):
         # Get device number from device_eui_map
         device_number = device_eui_map.get(dev_eui)
 
+        if device_number is None:
+            # Device mapping doesn't exist, create one and save
+            device_number = len(device_eui_map) + 1
+            device_eui_map[dev_eui] = device_number
+            shutil.copyfile(src=JSONS_PATH + 'device_on_register.json', dst=JSONS_PATH + f'device{device_number}.json')
+            logs_dir = LOGS_PATH + f'device{device_number}'
+            if not os.path.exists(logs_dir):
+                os.makedirs(logs_dir)
+            save_device_mappings(device_eui_map)
+
         # Update device's last seen timestamp
         device_config_path = f"{JSONS_PATH}device{device_number}.json"
         if os.path.exists(device_config_path):
@@ -257,13 +267,6 @@ def on_message(client, userdata, msg):
                 write_to_log(log_message=log_message, log_path=LOGS_PATH + 'EventLogger.log', alarm=False)
             with open(device_config_path, "w") as f:
                 json.dump(device_config, f)
-
-        if device_number is None:
-            # Device mapping doesn't exist, create one and save
-            device_number = len(device_eui_map) + 1
-            device_eui_map[dev_eui] = device_number
-            shutil.copyfile(src=JSONS_PATH + 'device_on_register.json', dst=JSONS_PATH + f'device{device_number}.json')
-            save_device_mappings(device_eui_map)
         
         if not base64_data: # device rebooted
             log_filename = "EventLogger.log"

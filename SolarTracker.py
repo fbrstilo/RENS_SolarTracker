@@ -497,6 +497,7 @@ def load_device_mappings():
 
 def load_devices():
     global devices
+    devices = {}
     device_ids = load_device_mappings()
     for id in device_ids.values():
         device_config = tr.load_device_config(device_id=id)
