@@ -90,11 +90,13 @@ document.addEventListener('DOMContentLoaded', () => {
         else    submitButton.disabled = false;
     });
 
+    let params = new URLSearchParams(window.location.search)
+    let selectedDevice = params.get('id');
     const popup = document.getElementById('popup');
     const overlay = document.getElementById('overlay')
     const timerDisplay = document.getElementById('timer');
     const countdownTime = document.getElementById('wait-time').value; // Timer duration in seconds
-    const timerKey = 'popupTimer';
+    const timerKey = 'popupTimer' + selectedDevice;
     overlay.style.height = document.getElementById('main-content').scrollHeight + 'px'; // Cover the entire main content, even when scrolling
     
     // Function to show the popup
