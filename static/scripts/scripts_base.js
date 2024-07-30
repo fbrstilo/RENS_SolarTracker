@@ -38,6 +38,10 @@ document.addEventListener('DOMContentLoaded', () => {
         errorsButton.classList.add('active');
         errorsButton.nextElementSibling.style.display = 'block';
     }
+    else if(window.location.pathname.startsWith('/manual')){
+        let manualButton = document.getElementById('manual');
+        manualButton.classList.add('active');
+    }
     else{
         let homeButton = document.getElementById('home')
         homeButton.classList.add('active');

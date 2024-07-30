@@ -265,3 +265,47 @@ input[type=text], input[type=password] {
 .highlight-green{
     color: #009440;
 }
+
+
+table {
+    border-radius: 5px;
+    font-weight: normal;
+    border: none;
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 100%;
+    white-space: nowrap;
+    background-color: white;
+}
+td, th {
+    text-align: center;
+    padding: 8px;
+}
+td {
+    border-right: 1px solid #f8f8f8;
+    height: 2em;
+}
+th {
+    color: white;
+    background: #009440;
+}
+
+th:nth-child(odd) {
+    color: white;
+    background: #4e5890;
+}
+tr:nth-child(even) {
+    background: #f8f8f8;
+}
+.line {
+    width: 40px;
+    height: 2px;
+    background-color: #4e5890;
+    transform-origin: center;
+    transition: transform 0.3s ease;
+  }
+.angle-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

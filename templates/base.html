@@ -29,6 +29,11 @@
                     Home
                 </div>
             </a>
+            <a href="/manual">
+                <div id="manual" class="button">
+                    User manual
+                </div>
+            </a>
             <a href="/admin">
                 <div id="admin" class="button">
                     Admin
@@ -61,7 +66,7 @@
                 <a href="/device?id=device{{device}}">
                     <div id="device{{device}}" class="button">
                         <span class="dot"
-                        {% if device['state'] == 'disconnected' %}
+                        {% if devices[device]['state'] == 'disconnected' %}
                         style="background-color: #ff4545;"
                         {% else %}
                         style="background-color: #009440;"

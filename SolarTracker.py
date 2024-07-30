@@ -35,6 +35,13 @@ def index():
     logged_in = True if validate_login(request) else False
     return render_template('index.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=logged_in)
 
+@app.route('/manual')
+def manual():
+    global devices, logs
+    load_all()
+    logged_in = True if validate_login(request) else False
+    return render_template('manual.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=logged_in)
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     load_all()
@@ -127,8 +134,6 @@ def device_on_select():
         else:
             template = 'devctrl.html'
             logged_in = False
-        #device_config_path = tr.JSONS_PATH + id + '.json'
-        #device_config = tr.load_device_config(device_id=device_number)
         return render_template(template,
                                alarms_and_errors=tr.alarms_and_errors,
                                device_logs = device_logs,
@@ -233,9 +238,9 @@ def download_log():
         return send_file(path_or_file=file, mimetype='text/csv', as_attachment=True, download_name=os.path.splitext(filename)[0] + '.csv')
 
 def device_eui_from_number(device_number):
-     global devices
-     key_list = list(devices.keys())
-     value_list = list(devices.values())
+     device_mappings = load_device_mappings()
+     key_list = list(device_mappings.keys())
+     value_list = list(device_mappings.values())
      position = value_list.index(int(device_number))
      eui = key_list[position]
      return eui
@@ -484,7 +489,7 @@ def load_logs():
         if file.endswith(".log"):
             logs.append(os.path.join("", file))
 
-def load_device_ids():
+def load_device_mappings():
     filepath = f"{tr.JSONS_PATH}device_mappings.json"
     if os.path.exists(filepath):
             with open(filepath, "r") as f:
@@ -492,7 +497,7 @@ def load_device_ids():
 
 def load_devices():
     global devices
-    device_ids = load_device_ids()
+    device_ids = load_device_mappings()
     for id in device_ids.values():
         device_config = tr.load_device_config(device_id=id)
         devices[f'{id}'] = device_config # this is cancer, but jinja requires the keys to be strings
