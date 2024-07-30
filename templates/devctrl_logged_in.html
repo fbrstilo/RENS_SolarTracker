@@ -15,8 +15,8 @@
         </button>
         <div class="content">
             <input type="hidden" name="params"> <!--Used to find all forms in 'parameters'-->
-            <input type="text" id="siren-on-time" name="siren-on-time" placeholder="Siren on time (0-255s), current={{device_config['siren-on-time']}}s, default={{defaults['siren-on-time']}}s">
-            <input type="text" id="insolation-percentage" name="insolation-percentage" placeholder="Insolation (%), current={{device_config['insolation-percentage']}}%, default={{device_config['insolation-percentage']}}%">
+            <input type="text" id="siren-on-time" name="siren-on-time" placeholder="Siren on time (0-255s), current={{devices[device_number]['siren-on-time']}}s, default={{defaults['siren-on-time']}}s">
+            <input type="text" id="insolation-percentage" name="insolation-percentage" placeholder="Insolation (%), current={{devices[device_number]['insolation-percentage']}}%, default={{devices[device_number]['insolation-percentage']}}%">
             <button name="submit-siren-and-insolation" id="submit-siren-and-insolation" class="submit-button">Send data</button>
         </div>
     </form>
@@ -28,8 +28,8 @@
         </button>
         <div class="content">
             <input type="hidden" name="params"> <!--Used to find all forms in 'parameters'-->
-            <input type="text" id="latitude" name="latitude" placeholder="Latitude, current={{device_config['latitude']}}°, default={{defaults['latitude']}}°">
-            <input type="text" id="longitude" name="longitude" placeholder="Longitude, current={{device_config['longitude']}}°, default={{defaults['longitude']}}°">
+            <input type="text" id="latitude" name="latitude" placeholder="Latitude, current={{devices[device_number]['latitude']}}°, default={{defaults['latitude']}}°">
+            <input type="text" id="longitude" name="longitude" placeholder="Longitude, current={{devices[device_number]['longitude']}}°, default={{defaults['longitude']}}°">
             <button name="submit-position" id="submit-position" class="submit-button">Send data</button>
         </div>
     </form>
@@ -41,7 +41,7 @@
         </button>
         <div class="content">
             <input type="hidden" name="params"> <!--Used to find all forms in 'parameters'-->
-            <input type="text" id="time-offset" name="time-offset" placeholder="Time offset (-65535 to 65535), current={{device_config['time-offset']}}s, default={{defaults['time-offset']}}s">
+            <input type="text" id="time-offset" name="time-offset" placeholder="Time offset (-65535 to 65535), current={{devices[device_number]['time-offset']}}s, default={{defaults['time-offset']}}s">
             <button name="submit-time" id="submit-time" class="submit-button">Send data</button>
         </div>
     </form>
@@ -53,8 +53,8 @@
         </button>
         <div class="content">
             <input type="hidden" name="params"> <!--Used to find all forms in 'parameters'-->
-            <input type="text" id="limit-east" name="limit-east" placeholder="East limit, current={{device_config['limit-east']}}°, default={{defaults['limit-east']}}°">
-            <input type="text" id="limit-west" name="limit-west" placeholder="West limit, current={{device_config['limit-west']}}°, default={{defaults['limit-west']}}°">
+            <input type="text" id="limit-east" name="limit-east" placeholder="East limit, current={{devices[device_number]['limit-east']}}°, default={{defaults['limit-east']}}°">
+            <input type="text" id="limit-west" name="limit-west" placeholder="West limit, current={{devices[device_number]['limit-west']}}°, default={{defaults['limit-west']}}°">
             <button name="submit-angle-limits" id="submit-angle-limits" class="submit-button">Send data</button>
         </div>
     </form>
@@ -66,8 +66,8 @@
         </button>
         <div class="content">
             <input type="hidden" name="params"> <!--Used to find all forms in 'parameters'-->
-            <input type="text" id="height-first" name="height-first" placeholder="First panel height, current={{device_config['height-first']}}m, default={{defaults['height-first']}}m">
-            <input type="text" id="height-second" name="height-second" placeholder="Second panel height, current={{device_config['height-second']}}m, default={{defaults['height-second']}}m">
+            <input type="text" id="height-first" name="height-first" placeholder="First panel height, current={{devices[device_number]['height-first']}}m, default={{defaults['height-first']}}m">
+            <input type="text" id="height-second" name="height-second" placeholder="Second panel height, current={{devices[device_number]['height-second']}}m, default={{defaults['height-second']}}m">
             <button name="submit-height" id="submit-height" class="submit-button">Send data</button>
         </div>
     </form>
@@ -79,8 +79,8 @@
         </button>
         <div class="content">
             <input type="hidden" name="params"> <!--Used to find all forms in 'parameters'-->
-            <input type="text" id="axis-distance" name="axis-distance" placeholder="Panel axis distance, current={{device_config['axis-distance']}}m, default={{defaults['axis-distance']}}m">
-            <input type="text" id="panel-length" name="panel-length" placeholder="panel length, current={{device_config['panel-length']}}m, default={{defaults['panel-length']}}m">
+            <input type="text" id="axis-distance" name="axis-distance" placeholder="Panel axis distance, current={{devices[device_number]['axis-distance']}}m, default={{defaults['axis-distance']}}m">
+            <input type="text" id="panel-length" name="panel-length" placeholder="panel length, current={{devices[device_number]['panel-length']}}m, default={{defaults['panel-length']}}m">
             <button name="submit-length-and-distance" id="submit-length-and-distance" class="submit-button">Send data</button>
         </div>
     </form>
@@ -92,8 +92,8 @@
         </button>
         <div class="content">
             <input type="hidden" name="params"> <!--Used to find all forms in 'parameters'-->
-            <input type="text" id="home-position" name="home-position" placeholder="Home position, current={{device_config['home-position']}}°, default={{defaults['home-position']}}°">
-            <input type="text" id="motor-rpd" name="motor-rpd" placeholder="Revolutions per degree, current={{device_config['motor-rpd']}}, default={{defaults['motor-rpd']}}">
+            <input type="text" id="home-position" name="home-position" placeholder="Home position, current={{devices[device_number]['home-position']}}°, default={{defaults['home-position']}}°">
+            <input type="text" id="motor-rpd" name="motor-rpd" placeholder="Revolutions per degree, current={{devices[device_number]['motor-rpd']}}, default={{defaults['motor-rpd']}}">
             <button name="submit-home-rpd" id="submit-home-rpd" class="submit-button">Send data</button>
         </div>
     </form>

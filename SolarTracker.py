@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, make_response, send_file, jsonify
+from flask import Flask, render_template, redirect, request, make_response, send_file
 import sys
 import json
 import os
@@ -20,7 +20,7 @@ RESET_PORT = 65
 
 timeout_enable = False
 wait = 0
-statuses = {}
+devices = {}
 
 app = Flask(__name__)
 
@@ -33,7 +33,7 @@ def index():
     global devices, logs
     load_all()
     logged_in = True if validate_login(request) else False
-    return render_template('index.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logged_in=logged_in, statuses=statuses)
+    return render_template('index.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=logged_in)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -42,7 +42,7 @@ def login():
         if(validate_login(request)):
             return redirect('/admin')
         else:
-            return render_template('login.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logged_in=False, statuses=statuses)
+            return render_template('login.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=False)
     else:
         token = request.form['password']
         resp = make_response(redirect('/login'))
@@ -54,10 +54,10 @@ def admin():
     global defaults, wait, devices, logs
     load_all()
     if request.method =='GET':
-        if(not validate_login(request)):
-            return redirect('/login')
+        if(validate_login(request)):
+            return render_template('admin.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, defaults=defaults, keys=tr.keys, logged_in=True)
         else:
-            return render_template('admin.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, defaults=defaults, keys=tr.keys, logged_in=True, statuses=statuses)
+            return redirect('/login')
     else:
         if "submit-defaults" in request.form or "submit-delta-time" in request.form:
             update_json_from_request(request=request, file_path=f"{tr.JSONS_PATH}defaults.json")
@@ -79,11 +79,11 @@ def alarms_errors():
     if request.method =='GET':
         id = request.args.get('id')
         if(id == 'new-alarms-errors'):
-            return render_template('new_alarms_errors.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logged_in=validate_login(request), statuses=statuses)
+            return render_template('new_alarms_errors.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=validate_login(request))
         elif(id == 'alarms_and_errors_archive'):
             with open(filepath, 'r') as f:
                 data = f.read()
-                return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, data=data, logged_in=validate_login(request), log_selected=filepath, statuses=statuses)
+                return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, data=data, logged_in=validate_login(request), log_selected=filepath)
     else:
         if 'dismiss-all' in request.form:
             tr.alarms_and_errors.remove_all_errors()
@@ -115,32 +115,29 @@ def device_on_select():
                 data = f.read()
                 return render_template('logs.html',
                                        alarms_and_errors=tr.alarms_and_errors,
-                                       devices=devices.items(),
+                                       devices=devices,
                                        logs=logs,
                                        data=data,
                                        logged_in=logged_in,
                                        log_selected=f"{tr.LOGS_PATH}{id}/{log_selected}",
-                                       csv_allow = True,
-                                       statuses=statuses)
+                                       csv_allow = True)
         if(logged_in):
             template = 'devctrl_logged_in.html'
             logged_in = True
         else:
             template = 'devctrl.html'
             logged_in = False
-        device_config_path = tr.JSONS_PATH + id + '.json'
-        device_config = tr.load_device_config(device_id=device_number)
+        #device_config_path = tr.JSONS_PATH + id + '.json'
+        #device_config = tr.load_device_config(device_id=device_number)
         return render_template(template,
                                alarms_and_errors=tr.alarms_and_errors,
                                device_logs = device_logs,
                                device_number=device_number,
-                               devices=devices.items(),
+                               devices=devices,
                                logs=logs,
                                wait=wait,
                                logged_in=logged_in,
-                               device_config = device_config,
-                               defaults = defaults,
-                               statuses=statuses)
+                               defaults = defaults)
         
     else:
         downlink_data=bytearray()
@@ -215,7 +212,7 @@ def log_on_select():
         filepath = f"{tr.LOGS_PATH}{filename}"
         with open(filepath, 'r') as f:
             data = f.read()
-        return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices.items(), logs=logs, logSelected=filepath, data=data, logged_in=logged_in, statuses=statuses)
+        return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logSelected=filepath, data=data, logged_in=logged_in)
     else:
         if('delete-log' in request.form):
             if(os.path.exists(f"{tr.LOGS_PATH}{filename}")):
@@ -487,19 +484,19 @@ def load_logs():
         if file.endswith(".log"):
             logs.append(os.path.join("", file))
 
-def load_devices():
-    global devices
+def load_device_ids():
     filepath = f"{tr.JSONS_PATH}device_mappings.json"
     if os.path.exists(filepath):
             with open(filepath, "r") as f:
-                devices = json.load(f)
+                return json.load(f)
 
-def load_device_statuses():
-    global devices, statuses 
-    for id in devices.values():
+def load_devices():
+    global devices
+    device_ids = load_device_ids()
+    for id in device_ids.values():
         device_config = tr.load_device_config(device_id=id)
-        statuses[id] = device_config['state']
-    return statuses
+        devices[f'{id}'] = device_config # this is cancer, but jinja requires the keys to be strings
+    return devices
 
 def load_defaults():
     global defaults
@@ -553,7 +550,6 @@ def timectime(s):
 def load_all():
     load_logs()
     load_devices()
-    load_device_statuses()
 load_all()
 load_defaults()
 

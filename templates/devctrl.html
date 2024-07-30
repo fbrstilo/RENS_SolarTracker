@@ -13,14 +13,14 @@
         <p>Control will be re-enabled in <span id="timer"></span> seconds.</p>
         <input type="hidden" id="wait-time" value="{{wait}}">
     </div>
-    {% if(device_config['state'] != 'connected') %}
+    {% if(devices[device_number]['state'] != 'connected') %}
     <div class="box" style="background-color: #ff4545;">
         <h2>Device {{ device_number }} <b>DISCONNECTED</b></h2>
     {% else %}
     <div class="box">
         <h2>Device {{ device_number }}</h2>
     {% endif %}
-        <p>Last seen: {{ device_config['last-seen'] | ctime }}</p>
+        <p>Last seen: {{ devices[device_number]['last-seen'] | ctime }}</p>
     </div>
     <div class="box">
         <form action="" method="POST" id="elevation-control">
@@ -32,7 +32,7 @@
                 </label>
                 <span id="manual-toggle-label">Auto</span>
                 <input type="text" id="elevation-text-box" name="elevation-text-box" placeholder="Angle/Panel Tilt" style="display: none;">
-                <p>Current position: {{ '%.2f' | format(device_config['current-position']) }}</p>
+                <p>Current position: {{ '%.2f' | format(devices[device_number]['current-position']) }}</p>
                 <button name="submit-elevation" id="submit-elevation" class="submit-button">Send data</button>
             </div>
         </form>
