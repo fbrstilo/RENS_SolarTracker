@@ -127,22 +127,26 @@ def send_downlink(dev_eui, data, port):
     req.queue_item.dev_eui = dev_eui
     req.queue_item.f_port = port
 
-    resp = client.Enqueue(req, metadata=auth_token) # response s kojim trenutno nista ne radimo
-    log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Downlink message sent to Device {device_eui_map[dev_eui]} (eui: {dev_eui} port: {port} data: {data})"
-    print(log_message)
+    try:
+        resp = client.Enqueue(req, metadata=auth_token) # response s kojim trenutno nista ne radimo
+        log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Downlink message sent to Device {device_eui_map[dev_eui]} (eui: {dev_eui} port: {port} data: {data})"
+    except Exception as e:
+        log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Error: Attempted sending message to unconnected device (device id: {device_eui_map[dev_eui]})"
+        write_to_log(log_message=log_message, log_path=ALARMS_PATH + 'Alarm_Error.log', alarm=True)
 
 # Convert float to bytes
 def float_to_bytes(float_value):
     return bytearray(struct.pack(">f", float_value))
 
 # Load or create device mappings
-def load_or_create_device_mappings():
+def load_device_mappings():
+    global device_eui_map
     filepath = f"{JSONS_PATH}device_mappings.json"
     if os.path.exists(filepath):
         with open(filepath, "r") as f:
-            return json.load(f)
+            device_eui_map = json.load(f)
     else:
-        return {}
+        device_eui_map =  {}
 
 # Save device mappings
 def save_device_mappings(device_mappings):
@@ -231,6 +235,16 @@ def find_files_with_extension(root_folder, extension):
                 file_paths.append(relative_path)
     return file_paths
 
+def find_available_device_id():
+    global device_eui_map
+    num_set = set(device_eui_map.values())
+    current_number = 1
+
+    while current_number in num_set:
+        current_number += 1
+    
+    return current_number
+
 def on_message(client, userdata, msg):
     global downlink_sent, downlink_port_to_confirm, downlink_data_to_confirm
     log_filename = LOGS_PATH + "default.log"  # Default log filename
@@ -247,7 +261,8 @@ def on_message(client, userdata, msg):
 
         if device_number is None:
             # Device mapping doesn't exist, create one and save
-            device_number = len(device_eui_map) + 1
+            print('Creating new device...')
+            device_number = find_available_device_id()
             device_eui_map[dev_eui] = device_number
             shutil.copyfile(src=JSONS_PATH + 'device_on_register.json', dst=JSONS_PATH + f'device{device_number}.json')
             logs_dir = LOGS_PATH + f'device{device_number}'
@@ -417,13 +432,12 @@ client.on_message = on_message
 client.connect(broker_address)
 
 # Load or create device mappings
-device_eui_map = load_or_create_device_mappings()
+load_device_mappings()
 
 def scheduled_tasks():
     while True:
         schedule.run_pending()
         time.sleep(1)
-
 # Thread for running background tasks
 schedule.every().day.at('00:00').do(delete_logs, 30) # every day at midnight delete logs older than 30 days
 schedule.every(1).minutes.do(check_disconnected) # every 5 minutes check device connections
