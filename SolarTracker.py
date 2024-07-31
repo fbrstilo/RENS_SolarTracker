@@ -196,6 +196,7 @@ def device_on_select():
                         data = json.load(f)
                     del data[device_eui_from_number(device_number)]
                     update_json(data, f'{tr.JSONS_PATH}device_mappings.json')
+                    tr.load_device_mappings()
                     # Also delete all device logs and device configuration
                     device_logs = tr.LOGS_PATH + id
                     if os.path.exists(device_logs) and os.path.isdir(device_logs):
