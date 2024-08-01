@@ -1,6 +1,7 @@
 chirpstack_api==4.8.1.post1
 Flask==3.0.3
 grpcio==1.64.1
+openpyxl==3.1.5
 paho_mqtt==2.1.0
 schedule==1.2.2
 waitress==3.0.0
