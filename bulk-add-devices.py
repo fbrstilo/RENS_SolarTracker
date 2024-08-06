@@ -6,13 +6,11 @@ import grpc
 import tracking as tr
 
 class DeviceImportRecord:
-    def __init__(self, dev_eui, device_profile_id, name, description, network_key, application_key):
+    def __init__(self, dev_eui, device_profile_id, name, description):
         self.DevEUI          = dev_eui
         self.DeviceProfileID = device_profile_id
         self.Name            = name
         self.Description     = description
-        self.NetworkKey      = network_key
-        self.ApplicationKey  = application_key
 
 def get_device_import_list(file: str) -> list[DeviceImportRecord]:
     out = []
@@ -25,10 +23,10 @@ def get_device_import_list(file: str) -> list[DeviceImportRecord]:
     sheet = wb.active
     rw_no = 0   
     rows = sheet.iter_rows(min_row=1,max_row=sheet.max_row)
-    for a,b,c,d,e,f in rows:
+    for a,b,c,d in rows:
         if rw_no > 0:
-            print('importing rw:',rw_no,':',a.value,b.value,c.value,d.value,e.value,f.value)
-            out.append(DeviceImportRecord(a.value,b.value,c.value,d.value,e.value,f.value))
+            print('importing rw:',rw_no,':',a.value,b.value,c.value,d.value)
+            out.append(DeviceImportRecord(a.value,b.value,c.value,d.value))
         rw_no += 1
     
     return out
@@ -40,6 +38,11 @@ def import_devices(devices):
     channel = grpc.insecure_channel(server)
     client  = api.DeviceServiceStub(channel)
     auth_token = [("authorization", "Bearer %s" % api_token)]
+    nwk_key = '2B7E151628AED2A6ABF7158809CF4F3C'
+
+    print('Input network key (leave empty for default)')
+    user_input = input().strip()
+    if(user_input != ''): nwk_key = user_input
     
     try:
         req_device = api.CreateDeviceRequest()
@@ -56,8 +59,8 @@ def import_devices(devices):
         for dev in devices:
             print('creating keys for device DevEUI:',dev.DevEUI)
             req_keys.device_keys.dev_eui = str(dev.DevEUI)
-            req_keys.device_keys.nwk_key = str(dev.NetworkKey)
-            req_keys.device_keys.app_key = str(dev.ApplicationKey)
+            req_keys.device_keys.nwk_key = nwk_key
+            #req_keys.device_keys.app_key = str(dev.ApplicationKey)
             resp = client.CreateKeys(req_keys, metadata=auth_token)
     except  grpc.RpcError as e:
         if e.code() == grpc.StatusCode.INTERNAL:
@@ -81,5 +84,5 @@ if __name__ == "__main__":
             print(f'File {path} does not exist')
             exit(0)
     else:
-        print(f'Use: {sys.argv[0]} --path <path-to-your-table>')
+        print(f'Use: python {sys.argv[0]} --source <path-to-your-table>')
         exit(0)

@@ -20,7 +20,7 @@
 				<td>{{device}}</td>
 				<td>{{devices[device]['state']}}</td>
 				<td>{{devices[device]['last-seen'] | ctime}}</td>
-				<td><div class=angle-container value="{{devices[device]['current-position']}}">{{devices[device]['current-position']}}°<div class="line" id="{{device}}"></div></div></td>
+				<td><div class=angle-container value="{{devices[device]['current-position']}}">{{'%.2f' | format(devices[device]['current-position'])}}°<div class="line" id="{{device}}"></div></div></td>
 			</tr>
 			{% endfor %}
 		</table>
