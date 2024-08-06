@@ -31,7 +31,7 @@ def get_device_import_list(file: str) -> list[DeviceImportRecord]:
     
     return out
 
-def import_devices(devices):
+def import_devices(devices: list[DeviceImportRecord]):
     server  = tr.chirpstack_server
     api_token = tr.api_token
 
@@ -40,12 +40,14 @@ def import_devices(devices):
     auth_token = [("authorization", "Bearer %s" % api_token)]
     nwk_key = '2B7E151628AED2A6ABF7158809CF4F3C'
 
-    print('Input network key (leave empty for default)')
-    user_input = input().strip()
-    if(user_input != ''): nwk_key = user_input
+    if __name__ == "__main__":
+        print('Input network key (leave empty for default)')
+        user_input = input().strip()
+        if(user_input != ''): nwk_key = user_input
     
     try:
         req_device = api.CreateDeviceRequest()
+        req_keys = api.CreateDeviceKeysRequest()
         for dev in devices:
             print('creating Device with DevEUI:',dev.DevEUI)
             req_device.device.dev_eui           = str(dev.DevEUI)
@@ -53,20 +55,21 @@ def import_devices(devices):
             req_device.device.description       = str(dev.Description)
             req_device.device.application_id    = tr.app_id
             req_device.device.device_profile_id = str(dev.DeviceProfileID)
-            req_device.device.is_disabled       = False                     
-            resp = client.Create(req_device, metadata=auth_token)
-        req_keys = api.CreateDeviceKeysRequest()
-        for dev in devices:
+            req_device.device.is_disabled       = False
+            try:                 
+                resp = client.Create(req_device, metadata=auth_token)
+            except grpc.RpcError as e:
+                if e.code() == grpc.StatusCode.INTERNAL:
+                    print('import error device',dev.DevEUI,' import aborted! Check if device already exsists.')
+                continue
+
             print('creating keys for device DevEUI:',dev.DevEUI)
             req_keys.device_keys.dev_eui = str(dev.DevEUI)
             req_keys.device_keys.nwk_key = nwk_key
-            #req_keys.device_keys.app_key = str(dev.ApplicationKey)
-            resp = client.CreateKeys(req_keys, metadata=auth_token)
-    except  grpc.RpcError as e:
-        if e.code() == grpc.StatusCode.INTERNAL:
-            print('import error device',dev.DevEUI,' import aborted! Check Device my already exsist.')
-        else:
-            print('error:',type(e))
+            resp = client.CreateKeys(req_keys, metadata=auth_token)            
+    except Exception as e:
+        print('error:',e)
+        return e
 
     return None
 

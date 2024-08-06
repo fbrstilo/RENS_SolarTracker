@@ -1,5 +1,110 @@
 import { isInt, isFloat } from "./scripts_base.js";
 
+const upload_box = document.querySelector('.upload-box');
+const fileInput = document.getElementById('file-input');
+const fileSelectButton = document.getElementById('file-select-button');
+const fileListElement = document.getElementById('file-list');
+const uploadButton = document.getElementById('upload-button');
+let files = [];
+
+upload_box.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    upload_box.classList.add('dragover');
+});
+
+upload_box.addEventListener('dragleave', () => {
+    upload_box.classList.remove('dragover');
+});
+
+upload_box.addEventListener('drop', (e) => {
+    e.preventDefault();
+    upload_box.classList.remove('dragover');
+
+    for (let file of e.dataTransfer.files) {
+        files.push(file);
+    }
+
+    updateFileList();
+});
+
+fileSelectButton.addEventListener('click', () => {
+    fileInput.click();
+});
+
+fileInput.addEventListener('change', () => {
+    for (let file of fileInput.files) {
+        files.push(file);
+    }
+    updateFileList();
+});
+
+function updateFileList() {
+    fileListElement.innerHTML = '';
+
+    files.forEach((file, index) => {
+        const li = document.createElement('li');
+        const span = document.createElement('span');
+        span.textContent = file.name;
+
+        const removeButton = document.createElement('button');
+        removeButton.textContent = 'X';
+        removeButton.addEventListener('click', () => {
+            files.splice(index, 1);
+            updateFileList();
+        });
+
+        li.appendChild(span);
+        li.appendChild(removeButton);
+        fileListElement.appendChild(li);
+    });
+
+    if (files.length === 0) {
+        uploadButton.style.display = 'none';
+    } else {
+        uploadButton.style.display = 'block';
+    }
+}
+
+uploadButton.addEventListener('click', () => {
+    if (files.length === 0) {
+        alert("No files to upload.");
+        return;
+    }
+
+    const formData = new FormData();
+    for (let file of files) {
+        formData.append('file', file);
+    }
+
+    fetch('/upload', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => {
+        // Check if the response is successful
+        if (!response.ok) {
+            // Handle errors based on the response status
+            return response.json().then(errorData => {
+                throw new Error(errorData.error || 'Unknown error');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Alert success message and list of uploaded files
+            alert(`Success! Uploaded files:\n${data.files.join('\n')}`);
+            // Clear the file list and array after upload
+            files = [];
+            updateFileList();
+        }
+    })
+    .catch(error => {
+        // Alert error message
+        alert(`Error: ${error.message}`);
+    });
+});
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // Input sanitization

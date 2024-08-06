@@ -220,6 +220,48 @@ input[type=text], input[type=password] {
     background-color: #00723198;
 }
 
+.upload-box {
+    width: auto;
+    height: auto;
+    border: 2px dashed #ccc;
+    padding: 20px;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #ccc;
+    position: relative;
+}
+.upload-box.dragover {
+    border-color: #000;
+    color: #000;
+}
+.file-list {
+    width: 100%;
+    list-style-type: none;
+    padding: 0;
+    margin: 10px 0;
+    color: #333;
+}
+.file-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+    border-bottom: 1px solid #ccc;
+}
+.file-list li span {
+    flex-grow: 1;
+}
+.file-list li button {
+    border: none;
+    background: none;
+    color: red;
+    cursor: pointer;
+}
+
 /* Style for the timeout pop-up*/
 .overlay {
     display: none;

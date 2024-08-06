@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, make_response, send_file
+from flask import Flask, render_template, redirect, request, make_response, send_file, jsonify
 import sys
 import json
 import os
@@ -12,6 +12,7 @@ import logging
 import re
 from io import BytesIO
 from waitress import serve
+import bulk_add_devices as add
 
 POSITION_CONTROL_PORT = 1
 PARAMETER_SETTINGS_PORT = 3
@@ -227,16 +228,44 @@ def log_on_select():
         return redirect(f'/logs?id={filename}')
 
 @app.route('/download', methods=['POST'])
-def download_log():
+def download():
     filepath = request.form['filepath']
     filename = os.path.basename(filepath)
-    if('download-txt' in request.form):
-        return send_file(path_or_file=filepath, as_attachment=True)
-    elif('download-csv' in request.form):
+    print(filename)
+    if('download-csv' in request.form):
         file = BytesIO()
         file.write(str.encode(log_to_csv(filepath)))
         file.seek(0)
         return send_file(path_or_file=file, mimetype='text/csv', as_attachment=True, download_name=os.path.splitext(filename)[0] + '.csv')
+    else:
+        return send_file(path_or_file=filepath, as_attachment=True)
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+
+    files = request.files.getlist('file')
+    file_paths = []
+
+    for file in files:
+        if file.filename == '' or not file.filename.endswith('.xlsx'):
+            return jsonify({"error": "Invalid file. Upload an .xlsx file."}), 400
+
+        filename = file.filename
+        file_path = os.path.join('uploads/', filename)
+        file.save(file_path)
+        file_paths.append(file_path)
+        devices = add.get_device_import_list(file_path)
+        print('devices:')
+        print(devices)
+        if(devices != []):
+            retval = add.import_devices(devices)
+            if(retval != None):
+                return jsonify({"error": retval}), 400
+        os.remove(file_path)
+
+    return jsonify({"success": True, "files": file_paths}), 200
 
 def device_eui_from_number(device_number):
      device_mappings = load_device_mappings()

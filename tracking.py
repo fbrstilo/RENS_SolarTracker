@@ -339,7 +339,8 @@ def on_message(client, userdata, msg):
                         timestamp_seconds = struct.unpack('>I', timestamp_bytes)[0]
                         float_value = struct.unpack('>f', float_bytes)[0]
                         timestamp = datetime.fromtimestamp(timestamp_seconds).strftime('%Y-%m-%d %H:%M:%S')
-                        log_file.write(f"{timestamp}\t\t\t\t\t{float_value}\n")
+                        if(timestamp_seconds > 0):
+                            log_file.write(f"{timestamp}\t\t\t\t\t{float_value}\n")
                     return
         # If automatic log sending is enabled on the end node, those get sent to port 64
         elif port_number == 64:

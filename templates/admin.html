@@ -7,6 +7,21 @@
 {% block body %}
 <div class="main-content">
     <div class="box">
+        <h2>Group add devices</h2>
+        <form action="/download" method="POST" id="group-add-devices">
+            <button class="submit-button">Download template</button>
+            <div id="upload-box"></div>
+            <input type="hidden" name="filepath" value="devices.xlsx">
+        </form>
+        <div class="upload-box">
+            Drag and drop files here
+            <ul class="file-list" id="file-list"></ul>
+            <button class="submit-button" id="file-select-button" class="submit-button" style="margin-left: 0%;">Select File</button>
+            <input type="file" id="file-input" style="display: none;" multiple>
+            <button class="submit-button" id="upload-button" style="display: none; margin: 10px 0px;">Upload Files</button>
+        </div>
+    </div>
+    <div class="box">
         <form action="" method="POST" id="message-delta-time">
             <h2>Message delta time</h2>
             <div>
