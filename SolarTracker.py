@@ -21,7 +21,7 @@ RESET_PORT = 65
 timeout_enable = False
 wait = 0
 devices = {}
-alert = "none"
+alert = ""
 
 app = Flask(__name__)
 
@@ -31,26 +31,36 @@ logging.getLogger('werkzeug').disabled = True
 
 @app.route('/')
 def index():
-    global devices, logs
+    global devices, logs, alert
     load_all()
     logged_in = True if validate_login(request) else False
-    return render_template('index.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=logged_in, alert=alert)
+    render = render_template('index.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=logged_in, alert=alert)
+    if(alert != ""):
+        alert = ""
+    return render
 
 @app.route('/manual')
 def manual():
-    global devices, logs
+    global devices, logs, alert
     load_all()
     logged_in = True if validate_login(request) else False
-    return render_template('manual.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=logged_in, alert=alert)
+    render = render_template('manual.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=logged_in, alert=alert)
+    if(alert != ""):
+        alert = ""
+    return render
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    global alert
     load_all()
     if(request.method == 'GET'):
         if(validate_login(request)):
             return redirect('/admin')
         else:
-            return render_template('login.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=False, alert=alert)
+            render = render_template('login.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=False, alert=alert)
+            if(alert != ""):
+                alert = ""
+            return render
     else:
         token = request.form['password']
         resp = make_response(redirect('/login'))
@@ -59,11 +69,14 @@ def login():
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
-    global defaults, wait, devices, logs
+    global defaults, wait, devices, logs, alert
     load_all()
     if request.method =='GET':
         if(validate_login(request)):
-            return render_template('admin.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, defaults=defaults, keys=tr.keys, logged_in=True, alert=alert)
+            render = render_template('admin.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, defaults=defaults, keys=tr.keys, logged_in=True, alert=alert)
+            if(alert != ""):
+                alert = ""
+            return render
         else:
             return redirect('/login')
     else:
@@ -82,16 +95,23 @@ def admin():
     
 @app.route('/alarms-errors', methods=['GET', 'POST'])
 def alarms_errors():
+    global alert
     load_all()
     filepath = tr.ALARMS_PATH + "Alarm_Error.log"
     if request.method =='GET':
         id = request.args.get('id')
         if(id == 'new-alarms-errors'):
-            return render_template('new_alarms_errors.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=validate_login(request), alert=alert)
+            render = render_template('new_alarms_errors.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=validate_login(request), alert=alert)
+            if(alert != ""):
+                alert = ""
+            return render
         elif(id == 'alarms_and_errors_archive'):
             with open(filepath, 'r') as f:
                 data = f.read()
-                return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, data=data, logged_in=validate_login(request), log_selected=filepath, alert=alert)
+                render = render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, data=data, logged_in=validate_login(request), log_selected=filepath, alert=alert)
+                if(alert != ""):
+                    alert = ""
+                return render
     else:
         if 'dismiss-all' in request.form:
             tr.alarms_and_errors.remove_all_errors()
@@ -121,7 +141,7 @@ def device_on_select():
             filepath = f"{tr.LOGS_PATH}{id}/{log_selected}"
             with open(filepath, 'r') as f:
                 data = f.read()
-                return render_template('logs.html',
+                render = render_template('logs.html',
                                        alarms_and_errors=tr.alarms_and_errors,
                                        devices=devices,
                                        logs=logs,
@@ -130,13 +150,16 @@ def device_on_select():
                                        log_selected=f"{tr.LOGS_PATH}{id}/{log_selected}",
                                        csv_allow = True,
                                        alert=alert)
+                if(alert != ""):
+                    alert = ""
+                return render
         if(logged_in):
             template = 'devctrl_logged_in.html'
             logged_in = True
         else:
             template = 'devctrl.html'
             logged_in = False
-        return render_template(template,
+        render = render_template(template,
                                alarms_and_errors=tr.alarms_and_errors,
                                device_logs = device_logs,
                                device_number=device_number,
@@ -146,10 +169,13 @@ def device_on_select():
                                logged_in=logged_in,
                                defaults = defaults,
                                alert=alert)
+        if(alert != ""):
+            alert = ""
+        return render
         
     else:
         downlink_data=bytearray()
-        retval = 0
+        retval = False
         if 'submit-elevation' in request.form:  
             if('manual-toggle-switch' in request.form): # if manual mode is selected send wanted angle data
                 downlink_data.append(1)
@@ -196,6 +222,7 @@ def device_on_select():
                 wait = 7*int(defaults['delta-time'])
                 submit_defaults_thread = threading.Thread(target=submit_all_defaults, args=(device_number,))
                 submit_defaults_thread.start()
+                return redirect(f'/device?id=device{device_number}')
             elif 'submit-delete-device' in request.form:
                 if os.path.exists(f'{tr.JSONS_PATH}device_mappings.json'):
                     with open(f'{tr.JSONS_PATH}device_mappings.json', "r") as f:
@@ -214,12 +241,12 @@ def device_on_select():
         if(retval):
             alert = "Message sending failed. Check device connection and try again."
         else:
-            alert = "none"
+            alert = "Message sent successfully"
         return redirect(f'/device?id=device{device_number}')
 
 @app.route('/logs', methods=['GET', 'POST'])
 def log_on_select():
-    global devices, logs
+    global devices, logs, alert
     filename = f"{request.args.get('id')}"
     if(request.method == 'GET'):
         load_all()
@@ -227,7 +254,10 @@ def log_on_select():
         filepath = f"{tr.LOGS_PATH}{filename}"
         with open(filepath, 'r') as f:
             data = f.read()
-        return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logSelected=filepath, data=data, logged_in=logged_in, alert=alert)
+        render = render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logSelected=filepath, data=data, logged_in=logged_in, alert=alert)
+        if(alert != ""):
+            alert = ""
+        return render
     else:
         if('delete-log' in request.form):
             if(os.path.exists(f"{tr.LOGS_PATH}{filename}")):
@@ -413,7 +443,7 @@ def submit_all_defaults(device_number):
     device_config_path = f"{tr.JSONS_PATH}device{device_number}.json"
     device_config = tr.load_device_config(device_id=device_number)
     
-    # revert device config to default values, all except last-seen
+    # revert device parameters to default values
     device_config["siren-on-time"] = defaults["siren-on-time"]
     device_config["insolation-percentage"] = defaults["insolation-percentage"]
     device_config["latitude"] = defaults["latitude"]
@@ -525,6 +555,7 @@ def submit_all_defaults(device_number):
         return -1
     #time.sleep(int(defaults['delta-time']))
 
+    alert = f"Device {device_number} successfully reverted to defaults."
     return 0
 
 def log_request(device_number):
@@ -611,6 +642,7 @@ def timectime(s):
 def load_all():
     load_logs()
     load_devices()
+
 load_all()
 load_defaults()
 

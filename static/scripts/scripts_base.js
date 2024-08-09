@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    if(alertMessage != "none"){
+    if(alertMessage){
         alert(alertMessage)
     }
 });

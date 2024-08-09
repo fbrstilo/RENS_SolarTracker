@@ -141,14 +141,16 @@ def attempt_send_downlink(dev_eui, data, port):
         return 1
 
 def send_downlink(dev_eui, data, port, timeout_max): # attempt sending downlink in a separate thread, return on successful confirmation or after 3 attempts
+    global downlink_sent
     failed = True
     if(attempt_send_downlink(dev_eui, data, port)):
         return failed
-    for i in range(10):
+    for i in range(int(timeout_max)):
         time.sleep(1)
         if(downlink_sent == False):
             failed = False
             break
+    downlink_sent = False # reset confirmation tracking
     return failed
 
 
