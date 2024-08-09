@@ -351,6 +351,8 @@ def on_message(client, userdata, msg):
                 state_text = f"Device {device_number} is in MANUAL mode now"
             log_filename = LOGS_PATH + "EventLogger.log"
             log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, State: {state_text}\n"
+        elif port_number == 3: # port 3 is used for submitting parameters, ignore contents of returned messages
+            return
         elif port_number == 4: # Recieved logs
             # Check the length of the remaining data
             if len(remaining_data) == 4:
@@ -430,9 +432,9 @@ def on_message(client, userdata, msg):
         # Process any remaining bytes after the float
         additional_data = remaining_data[4:]
         if additional_data:
-                additional_data_message = f"Aditional data left after parsing message: {additional_data}\n"
+                additional_data_message = f"\nAditional data left after parsing message: {additional_data}\n"
                 log_message += additional_data_message
-    
+
     except json.JSONDecodeError as e:
         log_filename = ALARMS_PATH + "Alarm_Error.log"
         alarm = True

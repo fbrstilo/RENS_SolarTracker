@@ -191,8 +191,10 @@ def device_on_select():
         elif 'submit-log-request' in request.form:
              if('log-toggle-switch' in request.form):
                  wait = 8 * int(defaults['delta-time'])
+                 timeout_enable = True
                  log_request_thread = threading.Thread(target=log_request, args=(device_number,))
                  log_request_thread.start()
+                 return redirect(f'/device?id=device{device_number}')
              else:
                  downlink_data.append(0)
                  retval = tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), LOG_REQUEST_PORT, defaults['delta-time'])
@@ -565,7 +567,7 @@ def log_request(device_number):
         if(tr.send_downlink(device_eui, bytes(downlink_data), LOG_REQUEST_PORT, defaults['delta-time']) == True):
             alert = f"Failed sending message on block {i + 1}"
             return
-        print(f"Downlink message sent for block {i}. Waiting for {defaults['delta-time']} seconds before sending the next request.")
+        print(f"Downlink message sent for block {i}. Waiting for confirmation before sending the next request.")
         #time.sleep(int(defaults['delta-time']))
 
 def load_logs():
