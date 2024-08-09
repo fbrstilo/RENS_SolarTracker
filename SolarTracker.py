@@ -5,7 +5,6 @@ import os
 from datetime import datetime
 import shutil
 import tracking as tr
-import time
 import struct
 import threading
 import logging
@@ -22,6 +21,7 @@ RESET_PORT = 65
 timeout_enable = False
 wait = 0
 devices = {}
+alert = "none"
 
 app = Flask(__name__)
 
@@ -34,14 +34,14 @@ def index():
     global devices, logs
     load_all()
     logged_in = True if validate_login(request) else False
-    return render_template('index.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=logged_in)
+    return render_template('index.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=logged_in, alert=alert)
 
 @app.route('/manual')
 def manual():
     global devices, logs
     load_all()
     logged_in = True if validate_login(request) else False
-    return render_template('manual.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=logged_in)
+    return render_template('manual.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=logged_in, alert=alert)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -50,7 +50,7 @@ def login():
         if(validate_login(request)):
             return redirect('/admin')
         else:
-            return render_template('login.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=False)
+            return render_template('login.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=False, alert=alert)
     else:
         token = request.form['password']
         resp = make_response(redirect('/login'))
@@ -63,7 +63,7 @@ def admin():
     load_all()
     if request.method =='GET':
         if(validate_login(request)):
-            return render_template('admin.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, defaults=defaults, keys=tr.keys, logged_in=True)
+            return render_template('admin.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, defaults=defaults, keys=tr.keys, logged_in=True, alert=alert)
         else:
             return redirect('/login')
     else:
@@ -87,11 +87,11 @@ def alarms_errors():
     if request.method =='GET':
         id = request.args.get('id')
         if(id == 'new-alarms-errors'):
-            return render_template('new_alarms_errors.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=validate_login(request))
+            return render_template('new_alarms_errors.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logged_in=validate_login(request), alert=alert)
         elif(id == 'alarms_and_errors_archive'):
             with open(filepath, 'r') as f:
                 data = f.read()
-                return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, data=data, logged_in=validate_login(request), log_selected=filepath)
+                return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, data=data, logged_in=validate_login(request), log_selected=filepath, alert=alert)
     else:
         if 'dismiss-all' in request.form:
             tr.alarms_and_errors.remove_all_errors()
@@ -104,7 +104,7 @@ def alarms_errors():
 
 @app.route('/device', methods=['GET', 'POST'])
 def device_on_select():
-    global defaults, timeout_enable, wait, devices, logs
+    global defaults, timeout_enable, wait, devices, logs, alert
     load_all()
     id = request.args.get('id')
     device_number = id.removeprefix('device')
@@ -128,7 +128,8 @@ def device_on_select():
                                        data=data,
                                        logged_in=logged_in,
                                        log_selected=f"{tr.LOGS_PATH}{id}/{log_selected}",
-                                       csv_allow = True)
+                                       csv_allow = True,
+                                       alert=alert)
         if(logged_in):
             template = 'devctrl_logged_in.html'
             logged_in = True
@@ -143,10 +144,12 @@ def device_on_select():
                                logs=logs,
                                wait=wait,
                                logged_in=logged_in,
-                               defaults = defaults)
+                               defaults = defaults,
+                               alert=alert)
         
     else:
         downlink_data=bytearray()
+        retval = 0
         if 'submit-elevation' in request.form:  
             if('manual-toggle-switch' in request.form): # if manual mode is selected send wanted angle data
                 downlink_data.append(1)
@@ -156,8 +159,8 @@ def device_on_select():
                 downlink_data += tilt_bytes
             else:
                  downlink_data.append(0)
-            tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), POSITION_CONTROL_PORT)
-            wait = int(defaults['delta-time'])
+            retval = tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), POSITION_CONTROL_PORT, defaults['delta-time']) != 0
+            #wait = int(defaults['delta-time'])
         
         elif 'submit-log-request' in request.form:
              if('log-toggle-switch' in request.form):
@@ -166,13 +169,13 @@ def device_on_select():
                  log_request_thread.start()
              else:
                  downlink_data.append(0)
-                 tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), LOG_REQUEST_PORT)
-                 wait = int(defaults['delta-time'])
+                 retval = tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), LOG_REQUEST_PORT, defaults['delta-time'])
+                 #wait = int(defaults['delta-time'])
             
         elif 'submit-reset' in request.form:
             downlink_data = bytearray([0x55, 0x55, 0x55, 0x55])  # System reset command
-            tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), RESET_PORT)
-            wait = int(defaults['delta-time'])
+            retval = tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), RESET_PORT, defaults['delta-time'])
+            #wait = int(defaults['delta-time'])
 
         elif('delete-log' in request.form):
             filepath = f"{tr.LOGS_PATH}{id}/{request.args.get('log')}"
@@ -184,10 +187,12 @@ def device_on_select():
             device_config_path = tr.JSONS_PATH + id + '.json'
             if 'params' in request.form:
                 downlink_data = handle_params(request)
-                tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), PARAMETER_SETTINGS_PORT)
-                update_json_from_request(file_path=device_config_path, request=request)
-                wait = int(defaults['delta-time'])
+                retval = tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), PARAMETER_SETTINGS_PORT, defaults['delta-time']) == False
+                if(not retval):
+                    update_json_from_request(file_path=device_config_path, request=request)
+                    #wait = int(defaults['delta-time'])
             elif 'submit-defaults' in request.form:
+                timeout_enable = True
                 wait = 7*int(defaults['delta-time'])
                 submit_defaults_thread = threading.Thread(target=submit_all_defaults, args=(device_number,))
                 submit_defaults_thread.start()
@@ -206,7 +211,10 @@ def device_on_select():
                         os.remove(device_config_path)
                     return redirect('/')
         
-        timeout_enable = True
+        if(retval):
+            alert = "Message sending failed. Check device connection and try again."
+        else:
+            alert = "none"
         return redirect(f'/device?id=device{device_number}')
 
 @app.route('/logs', methods=['GET', 'POST'])
@@ -219,7 +227,7 @@ def log_on_select():
         filepath = f"{tr.LOGS_PATH}{filename}"
         with open(filepath, 'r') as f:
             data = f.read()
-        return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logSelected=filepath, data=data, logged_in=logged_in)
+        return render_template('logs.html', alarms_and_errors=tr.alarms_and_errors, devices=devices, logs=logs, logSelected=filepath, data=data, logged_in=logged_in, alert=alert)
     else:
         if('delete-log' in request.form):
             if(os.path.exists(f"{tr.LOGS_PATH}{filename}")):
@@ -400,6 +408,7 @@ def handle_params(request):
 # pack and submit defaults one by one
 # this takes a long time so should be ran in a separate thread
 def submit_all_defaults(device_number):
+    global alert
     device_eui = device_eui_from_number(device_number)
     device_config_path = f"{tr.JSONS_PATH}device{device_number}.json"
     device_config = tr.load_device_config(device_id=device_number)
@@ -426,8 +435,10 @@ def submit_all_defaults(device_number):
     downlink_data.append(int(defaults["siren-on-time"]))
     downlink_data.append(int(defaults["insolation-percentage"]))
     downlink_data.extend([0x00] * 6)  # Append 7 more bytes of 0x00 to complete the message
-    tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
-    time.sleep(int(defaults['delta-time']))
+    if(tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT, defaults['delta-time']) == True):
+        alert = "Message sending failed. Check device connection and try again."
+        return -1
+    #time.sleep(int(defaults['delta-time']))
 
     # global position
     downlink_data = bytearray()
@@ -439,8 +450,10 @@ def submit_all_defaults(device_number):
     lon_hex = struct.pack('>f', longitude).hex()
     downlink_data += bytes.fromhex(lat_hex)
     downlink_data += bytes.fromhex(lon_hex)
-    tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
-    time.sleep(int(defaults['delta-time']))
+    if(tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT, defaults['delta-time']) == True):
+        alert = "Message sending failed. Check device connection and try again."
+        return -1
+    #time.sleep(int(defaults['delta-time']))
 
     downlink_data = bytearray()
     downlink_data.append(2)
@@ -451,8 +464,10 @@ def submit_all_defaults(device_number):
     downlink_data.append(add_or_subtract)
     downlink_data += offset_seconds_bytes
     downlink_data.extend([0x00] * 6)  # Append 6 more bytes of 0x00 to complete the message
-    tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
-    time.sleep(int(defaults['delta-time']))
+    if(tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT, defaults['delta-time']) == True):
+        alert = "Message sending failed. Check device connection and try again."
+        return -1
+    #time.sleep(int(defaults['delta-time']))
 
     downlink_data = bytearray()
     downlink_data.append(3)
@@ -463,8 +478,10 @@ def submit_all_defaults(device_number):
     w_limit_hex = struct.pack('>i', w_limit).hex()
     downlink_data += bytes.fromhex(e_limit_hex)
     downlink_data += bytes.fromhex(w_limit_hex)
-    tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
-    time.sleep(int(defaults['delta-time']))
+    if(tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT, defaults['delta-time']) == True):
+        alert = "Message sending failed. Check device connection and try again."
+        return -1
+    #time.sleep(int(defaults['delta-time']))
 
     downlink_data = bytearray()
     downlink_data.append(4)
@@ -475,8 +492,10 @@ def submit_all_defaults(device_number):
     h2_hex = struct.pack('>f', h2).hex()
     downlink_data += bytes.fromhex(h1_hex)
     downlink_data += bytes.fromhex(h2_hex)
-    tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
-    time.sleep(int(defaults['delta-time']))
+    if(tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT, defaults['delta-time']) == True):
+        alert = "Message sending failed. Check device connection and try again."
+        return -1
+    #time.sleep(int(defaults['delta-time']))
 
     downlink_data = bytearray()
     downlink_data.append(5)
@@ -487,8 +506,10 @@ def submit_all_defaults(device_number):
     dist_hex = struct.pack('>f', dist).hex()
     downlink_data += bytes.fromhex(l_hex)
     downlink_data += bytes.fromhex(dist_hex)
-    tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
-    time.sleep(int(defaults['delta-time']))
+    if(tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT, defaults['delta-time']) == True):
+        alert = "Message sending failed. Check device connection and try again."
+        return -1
+    #time.sleep(int(defaults['delta-time']))
 
     downlink_data = bytearray()
     downlink_data.append(6)
@@ -499,18 +520,22 @@ def submit_all_defaults(device_number):
     home_pos_hex = struct.pack('>f', home_pos).hex()
     downlink_data += bytes.fromhex(motor_rpd_hex)
     downlink_data += bytes.fromhex(home_pos_hex)
-    tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT)
-    time.sleep(int(defaults['delta-time']))
+    if(tr.send_downlink(device_eui, bytes(downlink_data), PARAMETER_SETTINGS_PORT, defaults['delta-time']) == True):
+        alert = "Message sending failed. Check device connection and try again."
+        return -1
+    #time.sleep(int(defaults['delta-time']))
 
-    return
+    return 0
 
 def log_request(device_number):
     device_eui = device_eui_from_number(device_number)
     for i in range(8):
         downlink_data = bytearray([1, i])
-        tr.send_downlink(device_eui, bytes(downlink_data), LOG_REQUEST_PORT)
+        if(tr.send_downlink(device_eui, bytes(downlink_data), LOG_REQUEST_PORT, defaults['delta-time']) == True):
+            alert = f"Failed sending message on block {i + 1}"
+            return
         print(f"Downlink message sent for block {i}. Waiting for {defaults['delta-time']} seconds before sending the next request.")
-        time.sleep(int(defaults['delta-time']))
+        #time.sleep(int(defaults['delta-time']))
 
 def load_logs():
     global logs

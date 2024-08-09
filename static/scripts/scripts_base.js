@@ -75,4 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = '/';
         });
     };
+
+    if(alertMessage != "none"){
+        alert(alertMessage)
+    }
 });

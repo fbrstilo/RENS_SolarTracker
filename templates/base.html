@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/Logo_Rens-baterija.png') }}">
     {% block head %}{% endblock %}
+    <script type="text/javascript">
+        var alertMessage = "{{alert}}"
+    </script>
     <script type="module" src="{{ url_for('static', filename='scripts/scripts_base.js') }}"></script>
 </head>
 <body>

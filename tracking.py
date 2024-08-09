@@ -102,20 +102,17 @@ def chirpstack_config():
 
 # Global variables for tracking downlink confirmation
 downlink_sent = False
-downlink_data_to_confirm = None
+downlink_dev_eui_to_confirm = None
 downlink_port_to_confirm = None
+downlink_sent_timestamp = None
+downlink_max_wait = 0
 
 # Global time delay variables in seconds
 request_current_pos = 60
 
 # Function to send downlink message using ChirpStack API
-def send_downlink(dev_eui, data, port):
-    global downlink_sent, downlink_data_to_confirm, downlink_port_to_confirm
-
-    # Set global variables for confirmation tracking
-    downlink_sent = True
-    downlink_data_to_confirm = data
-    downlink_port_to_confirm = port
+def attempt_send_downlink(dev_eui, data, port):
+    global downlink_sent, downlink_dev_eui_to_confirm, downlink_port_to_confirm, downlink_sent_timestamp, downlink_max_wait
 
     channel = grpc.insecure_channel(chirpstack_server)
     client = api.DeviceServiceStub(channel)
@@ -128,11 +125,32 @@ def send_downlink(dev_eui, data, port):
     req.queue_item.f_port = port
 
     try:
-        resp = client.Enqueue(req, metadata=auth_token) # response s kojim trenutno nista ne radimo
+        resp = client.Enqueue(req, metadata=auth_token)
         log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Downlink message sent to Device {device_eui_map[dev_eui]} (eui: {dev_eui} port: {port} data: {data})"
+        print(log_message)
+        # Set global variables for confirmation tracking
+        if port != 65: # dont expect response in case of reset
+            downlink_sent = True
+            downlink_dev_eui_to_confirm = dev_eui
+            downlink_port_to_confirm = port
+            downlink_sent_timestamp = datetime.now().timestamp()
+        return 0
     except Exception as e:
         log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Error: Attempted sending message to unconnected device (device id: {device_eui_map[dev_eui]})"
         write_to_log(log_message=log_message, log_path=ALARMS_PATH + 'Alarm_Error.log', alarm=True)
+        return 1
+
+def send_downlink(dev_eui, data, port, timeout_max): # attempt sending downlink in a separate thread, return on successful confirmation or after 3 attempts
+    failed = True
+    if(attempt_send_downlink(dev_eui, data, port)):
+        return failed
+    for i in range(10):
+        time.sleep(1)
+        if(downlink_sent == False):
+            failed = False
+            break
+    return failed
+
 
 # Convert float to bytes
 def float_to_bytes(float_value):
@@ -203,9 +221,7 @@ def alarm_disconnected(dev_numbers):
 # MQTT callback functions
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
-        #print("Connected to MQTT Broker!")
         client.subscribe(uplink_topic)
-        #print(f"Subscribed to topic: {uplink_topic}")
     else:
         print(f"Failed to connect, return code {rc}\n")
 
@@ -246,7 +262,7 @@ def find_available_device_id():
     return current_number
 
 def on_message(client, userdata, msg):
-    global downlink_sent, downlink_port_to_confirm, downlink_data_to_confirm
+    global downlink_sent, downlink_port_to_confirm, downlink_dev_eui_to_confirm, downlink_sent_timestamp, downlink_max_wait
     log_filename = LOGS_PATH + "default.log"  # Default log filename
     print("Message received!")
     try:
@@ -255,6 +271,7 @@ def on_message(client, userdata, msg):
         # Decode the port number from the first byte
         port_number = payload.get("fPort")
         dev_eui = payload["deviceInfo"]["devEui"]
+        print(f"eui: {dev_eui} port: {port_number}")
 
         # Get device number from device_eui_map
         device_number = device_eui_map.get(dev_eui)
@@ -297,6 +314,23 @@ def on_message(client, userdata, msg):
             write_to_log(log_message=log_message, log_path=ALARMS_PATH + log_filename, alarm=True)
             return
         
+        # Check if the received uplink confirms the previous downlink
+        if downlink_sent and port_number != 128:
+            if port_number == downlink_port_to_confirm and dev_eui == downlink_dev_eui_to_confirm:
+                print("Confirmation received for downlink message.")
+                # Reset confirmation tracking
+                downlink_sent = False
+                downlink_dev_eui_to_confirm = None
+                downlink_port_to_confirm = None
+                wait = datetime.now().timestamp() - downlink_sent_timestamp
+                print(f"Time to confirm: {wait}")
+                downlink_max_wait = wait if wait > downlink_max_wait else downlink_max_wait
+                print(f"Max wait: {downlink_max_wait}")
+            else:
+                print("Previous downlink messasge not confirmed!")
+                return
+            
+        
         # Prepare log filename
         date_str = datetime.now().strftime("%Y-%m-%d")
         hour_str = datetime.now().strftime('%H')
@@ -327,6 +361,7 @@ def on_message(client, userdata, msg):
                     device_config['current-position'] = ieee_float
                     store_device_config(device_id=device_number, device_config=device_config)
             else:
+                print("Recieved logs")
                 log_filename = LOGS_PATH + f"device{device_number}/" + f"{date_str}.log"
                 with open(log_filename, 'a') as log_file:
                     # Write the logs
@@ -339,8 +374,7 @@ def on_message(client, userdata, msg):
                         timestamp_seconds = struct.unpack('>I', timestamp_bytes)[0]
                         float_value = struct.unpack('>f', float_bytes)[0]
                         timestamp = datetime.fromtimestamp(timestamp_seconds).strftime('%Y-%m-%d %H:%M:%S')
-                        if(timestamp_seconds > 0):
-                            log_file.write(f"{timestamp}\t\t\t\t\t{float_value}\n")
+                        log_file.write(f"{timestamp}\t\t\t\t\t{float_value}\n")
                     return
         # If automatic log sending is enabled on the end node, those get sent to port 64
         elif port_number == 64:
@@ -396,14 +430,6 @@ def on_message(client, userdata, msg):
         if additional_data:
                 additional_data_message = f"Aditional data left after parsing message: {additional_data}\n"
                 log_message += additional_data_message
-        # Check if the received uplink confirms the previous downlink
-        if downlink_sent and downlink_port_to_confirm is not None and downlink_data_to_confirm is not None:
-            if port_number == downlink_port_to_confirm and decoded_data == downlink_data_to_confirm:
-                print("Confirmation received for downlink message.")
-                # Reset confirmation tracking
-                downlink_sent = False
-                downlink_data_to_confirm = None
-                downlink_port_to_confirm = None
     
     except json.JSONDecodeError as e:
         log_filename = ALARMS_PATH + "Alarm_Error.log"
@@ -417,6 +443,7 @@ def on_message(client, userdata, msg):
         log_filename = ALARMS_PATH + "Alarm_Error.log"
         alarm = True
         log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, An unexpected error occurred: {e}\n"
+    downlink_sent = False
     # Log data to the file
     write_to_log(log_message=log_message, log_path=log_filename, alarm=alarm)
 #initial setup
