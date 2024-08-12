@@ -107,12 +107,17 @@ downlink_port_to_confirm = None
 downlink_sent_timestamp = None
 downlink_max_wait = 0
 
-# Global time delay variables in seconds
-request_current_pos = 60
-
 # Function to send downlink message using ChirpStack API
-def attempt_send_downlink(dev_eui, data, port):
-    global downlink_sent, downlink_dev_eui_to_confirm, downlink_port_to_confirm, downlink_sent_timestamp, downlink_max_wait
+def attempt_send_downlink(request, client, auth_token):
+    try:
+        client.Enqueue(request, metadata=auth_token)
+        return None
+    except Exception as e:
+        return e
+
+def send_downlink(dev_eui, data, port, timeout_max): # attempt sending downlink in a separate thread, return after success or after timeout_max seconds
+    global downlink_sent, downlink_dev_eui_to_confirm, downlink_port_to_confirm, downlink_sent_timestamp
+    failed = True
 
     channel = grpc.insecure_channel(chirpstack_server)
     client = api.DeviceServiceStub(channel)
@@ -124,32 +129,31 @@ def attempt_send_downlink(dev_eui, data, port):
     req.queue_item.dev_eui = dev_eui
     req.queue_item.f_port = port
 
-    try:
-        resp = client.Enqueue(req, metadata=auth_token)
-        log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Downlink message sent to Device {device_eui_map[dev_eui]} (eui: {dev_eui} port: {port} data: {data})"
-        print(log_message)
-        # Set global variables for confirmation tracking
-        if port != 65: # dont expect response in case of reset
-            downlink_sent = True
-            downlink_dev_eui_to_confirm = dev_eui
-            downlink_port_to_confirm = port
-            downlink_sent_timestamp = datetime.now().timestamp()
-        return 0
-    except Exception as e:
+    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Sending downlink message to device {device_eui_map[dev_eui]} (eui: {dev_eui} port: {port} data: {data})")
+    error_returned = attempt_send_downlink(request=req, client=client, auth_token=auth_token)
+
+    if(error_returned != None):
         log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, Error: Attempted sending message to unconnected device (device id: {device_eui_map[dev_eui]})"
         write_to_log(log_message=log_message, log_path=ALARMS_PATH + 'Alarm_Error.log', alarm=True)
-        return 1
-
-def send_downlink(dev_eui, data, port, timeout_max): # attempt sending downlink in a separate thread, return on successful confirmation or after 3 attempts
-    global downlink_sent
-    failed = True
-    if(attempt_send_downlink(dev_eui, data, port)):
         return failed
+
+    # Set global variables for confirmation tracking
+    if port != 65: # dont expect a response in case of reset
+        downlink_sent = True
+        downlink_dev_eui_to_confirm = dev_eui
+        downlink_port_to_confirm = port
+        downlink_sent_timestamp = datetime.now().timestamp()
     for i in range(int(timeout_max)):
         time.sleep(1)
         if(downlink_sent == False):
             failed = False
             break
+    # Message successfully enqueued, but not sent
+    if(failed == True):
+        print("Message sending failed. Flushing downlink queue...")
+        req = api.FlushDeviceQueueRequest()
+        req.dev_eui = dev_eui
+        client.FlushQueue(req, metadata=auth_token)
     downlink_sent = False # reset confirmation tracking
     return failed
 
