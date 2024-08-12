@@ -215,7 +215,7 @@ def device_on_select():
             device_config_path = tr.JSONS_PATH + id + '.json'
             if 'params' in request.form:
                 downlink_data = handle_params(request)
-                retval = tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), PARAMETER_SETTINGS_PORT, defaults['delta-time']) == False
+                retval = tr.send_downlink(device_eui_from_number(device_number), bytes(downlink_data), PARAMETER_SETTINGS_PORT, defaults['delta-time'])
                 if(not retval):
                     update_json_from_request(file_path=device_config_path, request=request)
                     #wait = int(defaults['delta-time'])
@@ -239,7 +239,6 @@ def device_on_select():
                     if os.path.exists(device_config_path):
                         os.remove(device_config_path)
                     return redirect('/')
-        
         if(retval):
             alert = "Message sending failed. Check device connection and try again."
         else:
